@@ -1,0 +1,198 @@
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from datetime import datetime, timedelta
+from database import get_db, History, User, Folder
+from schemas.models import (
+    HistoryCreate, HistoryResponse, 
+    FolderCreate, FolderResponse
+)
+from routers.auth import get_current_user
+
+router = APIRouter(prefix="/history", tags=["History Management"])
+
+# -----------------------------------------------------------------------------
+# 📂 FOLDER ENDPOINTS
+# -----------------------------------------------------------------------------
+
+@router.get("/folders", response_model=List[FolderResponse])
+def get_folders(
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """ดึงรายชื่อโฟลเดอร์ทั้งหมดของผู้ใช้ (แม้จะเป็นโฟลเดอร์ว่าง)"""
+    query = db.query(Folder).filter(Folder.user_id == current_user.id)
+    
+    if search:
+        query = query.filter(Folder.name.ilike(f"%{search}%"))
+        
+    folders = query.order_by(Folder.name.asc()).all()
+    
+    # คำนวณจำนวนไอเท็มในแต่ละโฟลเดอร์เพื่อส่งกลับไปแสดงผลที่ UI
+    for f in folders:
+        f.item_count = len(f.items)
+        
+    return folders
+
+@router.post("/folders", response_model=FolderResponse, status_code=status.HTTP_201_CREATED)
+def create_folder(
+    folder: FolderCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """สร้างโฟลเดอร์ใหม่"""
+    # ตรวจสอบว่าชื่อซ้ำไหม
+    existing = db.query(Folder).filter(
+        Folder.user_id == current_user.id, 
+        Folder.name == folder.name
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Folder name already exists")
+        
+    new_folder = Folder(name=folder.name, user_id=current_user.id)
+    db.add(new_folder)
+    db.commit()
+    db.refresh(new_folder)
+    return new_folder
+
+@router.delete("/folders/{folder_id}")
+def delete_folder(
+    folder_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """ลบโฟลเดอร์ (รายการข้างในจะถูกลบแบบ Cascade ตามที่ตั้งไว้ใน database.py)"""
+    folder = db.query(Folder).filter(
+        Folder.id == folder_id, 
+        Folder.user_id == current_user.id
+    ).first()
+    
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+        
+    db.delete(folder)
+    db.commit()
+    return {"message": "Folder and its contents deleted successfully"}
+
+
+# -----------------------------------------------------------------------------
+# 📄 HISTORY ITEM ENDPOINTS
+# -----------------------------------------------------------------------------
+
+@router.get("/", response_model=List[HistoryResponse])
+def get_all_history(
+    folder_id: Optional[int] = None,
+    gram_type: Optional[str] = None,
+    shape: Optional[str] = None,
+    date_range: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """ดึงรายการประวัติการวิเคราะห์พร้อมตัวกรองขั้นสูง"""
+    query = db.query(History).filter(History.user_id == current_user.id)
+    
+    # 1. กรองตาม Folder ID
+    if folder_id is not None:
+        query = query.filter(History.folder_id == folder_id)
+
+    # 2. กรองตามผลการวิเคราะห์
+    if gram_type and gram_type != "All Types":
+        query = query.filter(History.gram_type == gram_type)
+    if shape and shape != "All Shapes":
+        query = query.filter(History.shape == shape)
+
+    # 3. กรองตามช่วงเวลา
+    if date_range and date_range != "All Time":
+        now = datetime.now()
+        if date_range == "Today":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(History.timestamp >= start)
+        elif date_range == "This Week":
+            start = now - timedelta(days=7)
+            query = query.filter(History.timestamp >= start)
+
+    # 4. ค้นหา Real-time (ชื่อรายการ, Note หรือแม้แต่ชื่อโฟลเดอร์ที่สังกัด)
+    if search:
+        search_term = f"%{search}%"
+        # Join กับตาราง Folder เพื่อให้ค้นหาจากชื่อโฟลเดอร์ในรายการ history ได้ด้วย
+        query = query.outerjoin(Folder).filter(
+            (History.item_name.ilike(search_term)) | 
+            (History.note.ilike(search_term)) |
+            (Folder.name.ilike(search_term))
+        )
+
+    return query.order_by(History.timestamp.desc()).all()
+
+@router.post("/", response_model=HistoryResponse)
+def create_history_item(
+    item: HistoryCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """บันทึกผลการวิเคราะห์ลงในประวัติ"""
+    db_history = History(
+        **item.dict(),
+        user_id=current_user.id
+    )
+    db.add(db_history)
+    db.commit()
+    db.refresh(db_history)
+    return db_history
+
+@router.delete("/{item_id}")
+def delete_history_item(
+    item_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """ลบรายการประวัติรายชิ้น"""
+    item = db.query(History).filter(History.id == item_id, History.user_id == current_user.id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    db.delete(item)
+    db.commit()
+    return {"message": "Item deleted"}
+
+@router.delete("/batch/delete")
+def delete_multiple_items(
+    item_ids: List[int] = Query(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """ลบหลายรายการพร้อมกัน"""
+    db.query(History).filter(
+        History.id.in_(item_ids), 
+        History.user_id == current_user.id
+    ).delete(synchronize_session=False)
+    
+    db.commit()
+    return {"message": f"{len(item_ids)} items deleted"}
+
+
+# -----------------------------------------------------------------------------
+# 📊 DASHBOARD STATS
+# -----------------------------------------------------------------------------
+
+@router.get("/dashboard-stats")
+def get_dashboard_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_history = db.query(History).filter(History.user_id == current_user.id).all()
+    
+    total = len(user_history)
+    if total == 0:
+        return {"total": 0, "avg_accuracy": 0, "today_count": 0}
+
+    avg_acc = sum([h.accuracy for h in user_history]) / total
+    today = datetime.now().date()
+    today_count = sum([1 for h in user_history if h.timestamp.date() == today])
+
+    return {
+        "total": total,
+        "avg_accuracy": round(avg_acc, 1),
+        "today_count": today_count
+    }

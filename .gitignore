@@ -1,0 +1,54 @@
+# Python / FastAPI (backend_api)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+.venv
+*.log
+
+# Flutter (detection_app)
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+coverage/
+lib/generated_plugin_registrant.dart
+.fvm/
+fvm_config.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
