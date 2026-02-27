@@ -52,4 +52,8 @@ fvm_config.json
 # OS
 Thumbs.db
 .DS_Store
-backend_api/detection_app.db 
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
