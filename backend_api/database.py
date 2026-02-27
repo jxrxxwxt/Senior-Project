@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
-# สร้าง Database เป็นไฟล์ SQLite
+# สร้าง Database เป็นไฟล์ SQLite ง่ายๆ (สามารถเปลี่ยนเป็น PostgreSQL ได้ภายหลัง)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./detection_app.db"
 
 engine = create_engine(
@@ -24,34 +24,14 @@ class User(Base):
     department = Column(String)
     hashed_password = Column(String)
     
-    # Relationships
-    # หนึ่ง User มีได้หลาย Folder และหลาย History
-    folders = relationship("Folder", back_populates="owner", cascade="all, delete-orphan")
-    history = relationship("History", back_populates="owner", cascade="all, delete-orphan")
-
-class Folder(Base):
-    __tablename__ = "folders"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    name = Column(String, index=True)
-    created_at = Column(DateTime, default=datetime.now)
-
-    # Relationships
-    owner = relationship("User", back_populates="folders")
-    # หนึ่ง Folder มีได้หลาย History item
-    items = relationship("History", back_populates="folder", cascade="all, delete-orphan")
+    # Relationship
+    history = relationship("History", back_populates="owner")
 
 class History(Base):
     __tablename__ = "history"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    
-    # เปลี่ยนจาก folder_name เป็น folder_id เพื่อความถาวร
-    # nullable=True หมายถึงรายการนี้อาจไม่อยู่ในโฟลเดอร์ใดเลย (No Folder)
-    folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True)
-    
     item_name = Column(String)
     timestamp = Column(DateTime, default=datetime.now)
     
@@ -60,12 +40,11 @@ class History(Base):
     gram_type = Column(String)
     shape = Column(String)
     accuracy = Column(Float)
-    image_path = Column(String, nullable=True) 
+    image_path = Column(String, nullable=True) # เก็บ Path ของรูปใน Server
     note = Column(Text, nullable=True)
+    folder_name = Column(String, default="General") # สำหรับจัดหมวดหมู่ Folder
 
-    # Relationships
     owner = relationship("User", back_populates="history")
-    folder = relationship("Folder", back_populates="items")
 
 # Dependency เพื่อใช้ใน Routers
 def get_db():
