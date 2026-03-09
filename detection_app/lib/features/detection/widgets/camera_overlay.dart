@@ -27,7 +27,7 @@ class OverlayPainter extends CustomPainter {
 
     final double w = size.width;
     final double h = size.height;
-    final double cornerSize = 40;
+    const double cornerSize = 40;
     
     // กำหนดพื้นที่ตรงกลาง (Frame)
     final Rect frame = Rect.fromCenter(center: Offset(w / 2, h / 2), width: w * 0.8, height: w * 0.8);

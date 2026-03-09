@@ -54,9 +54,9 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                       child: const Icon(Icons.lock_outline, size: 20, color: Colors.grey),
                     ),
                     const SizedBox(width: 12),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text("Guest User", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
                         Text("Limited Access", style: TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
@@ -192,10 +192,10 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                             if (totalSelected > 0)
                               InkWell(
                                 onTap: () => _showDeleteConfirm(context, provider),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   child: Row(
-                                    children: const [
+                                    children: [
                                       Icon(Icons.delete_outline, color: Colors.red, size: 18),
                                       SizedBox(width: 4),
                                       Text("Delete", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
@@ -265,7 +265,7 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: isSelected ? 1.5 : 1), boxShadow:[BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: isSelected ? 1.5 : 1), boxShadow:[BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
         child: Stack(
           children: [
             Padding(
@@ -276,7 +276,7 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                 ]),
             ),
             if (provider.isSelectionMode)
-              Positioned(top: 8, right: 8, child: Container(width: 20, height: 20, decoration: BoxDecoration(color: isSelected ? Colors.blue : Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(6), border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade400, width: 1.5)), child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null))
+              Positioned(top: 8, right: 8, child: Container(width: 20, height: 20, decoration: BoxDecoration(color: isSelected ? Colors.blue : Colors.white.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(6), border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade400, width: 1.5)), child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null))
           ],
         ),
       ),
@@ -287,7 +287,7 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
     final isSelected = provider.selectedIds.contains(item.id);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: isSelected ? 1.5 : 1), boxShadow:[BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: isSelected ? 1.5 : 1), boxShadow:[BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => provider.isSelectionMode ? provider.toggleItemSelection(item.id) : Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryDetailScreen(item: item))),

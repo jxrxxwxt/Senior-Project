@@ -166,14 +166,20 @@ class HistoryProvider extends ChangeNotifier {
   }
 
   void toggleItemSelection(int id) {
-    if (_selectedItemIds.contains(id)) _selectedItemIds.remove(id); 
-    else _selectedItemIds.add(id);
+    if (_selectedItemIds.contains(id)) {
+      _selectedItemIds.remove(id);
+    } else {
+      _selectedItemIds.add(id);
+    }
     notifyListeners();
   }
 
   void toggleFolderSelection(int id) {
-    if (_selectedFolderIds.contains(id)) _selectedFolderIds.remove(id); 
-    else _selectedFolderIds.add(id);
+    if (_selectedFolderIds.contains(id)) {
+      _selectedFolderIds.remove(id);
+    } else {
+      _selectedFolderIds.add(id);
+    }
     notifyListeners();
   }
 
@@ -195,7 +201,9 @@ class HistoryProvider extends ChangeNotifier {
     _isLoading = true; notifyListeners();
     try {
       if (_selectedItemIds.isNotEmpty) await _repository.deleteMultipleHistoryItems(_selectedItemIds.toList());
-      for (int folderId in _selectedFolderIds) await _repository.deleteFolder(folderId);
+      for (int folderId in _selectedFolderIds) {
+        await _repository.deleteFolder(folderId);
+      }
       
       await fetchAllData();
       _isSelectionMode = false; _selectedItemIds.clear(); _selectedFolderIds.clear();

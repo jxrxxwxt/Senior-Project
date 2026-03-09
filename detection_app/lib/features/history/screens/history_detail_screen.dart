@@ -51,9 +51,9 @@ class HistoryDetailScreen extends StatelessWidget {
                   color: const Color(0xFFF7F9FC), // สีเทาอ่อน
                   border: Border.all(color: const Color(0xFFEDF1F7)),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const[
+                  children: [
                     Icon(Icons.image_not_supported_outlined, size: 50, color: Colors.grey),
                     SizedBox(height: 12),
                     Text("Original Image", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500))
@@ -154,8 +154,8 @@ class HistoryDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, 
                   children: [
-                    Row(
-                      children: const[
+                    const Row(
+                      children: [
                         Icon(Icons.edit_note_rounded, size: 22, color: AppColors.textGrey), 
                         SizedBox(width: 8), 
                         Text("Observations Note", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark, fontSize: 16))

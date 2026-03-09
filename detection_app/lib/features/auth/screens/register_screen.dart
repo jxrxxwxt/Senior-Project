@@ -84,8 +84,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // 1. Header
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: Row(
-                      children: const[
+                    child: const Row(
+                      children: [
                         Icon(Icons.arrow_back, color: AppColors.textDark, size: 20),
                         SizedBox(width: 8),
                         Text("Back to Login", style: TextStyle(color: AppColors.textDark, fontSize: 14, fontWeight: FontWeight.w600)),
@@ -272,7 +272,7 @@ class _CustomDropdownState extends State<_CustomDropdown> {
                 elevation: 4,
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                shadowColor: Colors.black.withOpacity(0.1),
+                shadowColor: Colors.black.withValues(alpha: 0.1),
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 250), // จำกัดความสูง
                   decoration: BoxDecoration(

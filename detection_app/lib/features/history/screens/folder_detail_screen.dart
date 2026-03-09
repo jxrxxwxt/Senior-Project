@@ -226,7 +226,7 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
         border: Border.all(color: isSelected ? Colors.blue : const Color(0xFFEDF1F7), width: isSelected ? 1.5 : 1),
         boxShadow:[
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )

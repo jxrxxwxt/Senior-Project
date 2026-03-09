@@ -59,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           shape: BoxShape.circle,
           boxShadow:[
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.4), 
+              color: AppColors.primary.withValues(alpha: 0.4), 
               blurRadius: 10, 
               offset: const Offset(0, 4)
             ),
@@ -102,10 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               
               // ตรงกลาง: ข้อความ Analysis
-              Expanded(
+              const Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: const[
+                  children: [
                     Text(
                       "Analysis", 
                       style: TextStyle(
@@ -181,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               right: 20, // ปรับตำแหน่งให้แปะมุมขวาบนของไอคอนหลัก
               child: Container(
                 padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
@@ -217,9 +217,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: const Icon(Icons.lock_outline, size: 20, color: Colors.grey),
                     ),
                     const SizedBox(width: 12),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text("Guest User", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
                         Text("Limited Access", style: TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
@@ -373,7 +373,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(16),
         boxShadow:[
-          BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5)),
+          BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5)),
         ],
       ),
       child: Column(
@@ -400,7 +400,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow:[
-          BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ]
       ),
       child: Column(
@@ -421,7 +421,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow:[
-          BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ]
       ),
       child: Column(
@@ -506,7 +506,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow:[
-          BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ]
       ),
       child: Row(
