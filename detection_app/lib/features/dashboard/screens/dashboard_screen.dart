@@ -300,7 +300,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               crossAxisAlignment: CrossAxisAlignment.start,
               children:[
                 _buildHeader(auth.user),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                _buildLastUsedCard(provider),
+                const SizedBox(height: 16),
                 _buildExpandableCardSection(provider),
                 const SizedBox(height: 16),
                 Row(
@@ -528,6 +530,39 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.textDark)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLastUsedCard(HistoryProvider provider) {
+    final lastUsed = provider.items.isNotEmpty ? provider.items.last.timestamp : null;
+    final lastUsedText = lastUsed != null 
+      ? DateFormat('MMM d, hh:mm a').format(lastUsed)
+      : "Never used";
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow:[
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ]
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Last Used", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(lastUsedText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+            ],
+          ),
         ],
       ),
     );
