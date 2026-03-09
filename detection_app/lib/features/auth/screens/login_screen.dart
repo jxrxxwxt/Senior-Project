@@ -53,9 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text("Welcome Back", textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+              const Text("GramVision", textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textDark)),
               const SizedBox(height: 8),
-              const Text("Sign in to continue to Detection App", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textGrey)),
+              const Text("Sign in to continue to GramVision App", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textGrey)),
               const SizedBox(height: 40),
               
               const Text("Username", style: TextStyle(fontWeight: FontWeight.bold)),
