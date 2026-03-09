@@ -164,7 +164,7 @@ class _ResultScreenState extends State<ResultScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children:[
-                const Text("Note (Optional)", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 13)),
+                const Text("Label Note (Optional)", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 13)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _noteCtrl,
