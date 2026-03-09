@@ -178,11 +178,12 @@ def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # ดึงรายการทั้งหมดของผู้ใช้คนนี้
     user_history = db.query(History).filter(History.user_id == current_user.id).all()
     
     total = len(user_history)
     if total == 0:
-        return {"total": 0, "avg_accuracy": 0, "today_count": 0}
+        return {"total": 0, "avg_accuracy": 0, "today_count": 0, "department_count": 0}
 
     total_acc = sum([h.accuracy for h in user_history])
     avg_acc = total_acc / total
@@ -190,8 +191,18 @@ def get_dashboard_stats(
     today = datetime.now().date()
     today_count = sum([1 for h in user_history if h.timestamp.date() == today])
 
+    # ★ เพิ่ม: นับจำนวนการวิเคราะห์ของแผนกนี้
+    user_department = current_user.department
+    department_query = db.query(History).filter(
+        History.user_id.in_(
+            db.query(User.id).filter(User.department == user_department)
+        )
+    ).all()
+    department_count = len(department_query)
+
     return {
         "total": total,
         "avg_accuracy": round(avg_acc, 1),
-        "today_count": today_count
+        "today_count": today_count,
+        "department_count": department_count
     }

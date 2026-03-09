@@ -17,6 +17,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     username: str
+    department: str  # ← เพิ่มตรงนี้
 
 # --- Analysis Schemas ---
 class AnalysisResponse(BaseModel):

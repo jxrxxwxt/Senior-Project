@@ -17,7 +17,10 @@ class AuthRepository {
       await StorageService.saveToken(token);
       await StorageService.saveUsername(response.data['username']);
       
-      return UserModel(username: response.data['username']);
+      return UserModel(
+        username: response.data['username'],
+        department: response.data['department'],  // ← เพิ่มตรงนี้
+      );
     } catch (e) {
       throw Exception("Login failed: ${e.toString()}");
     }
