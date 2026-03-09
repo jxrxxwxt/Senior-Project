@@ -139,7 +139,7 @@ class HistoryDetailScreen extends StatelessWidget {
                       children: [
                         Icon(Icons.edit_note_rounded, size: 22, color: AppColors.textGrey), 
                         SizedBox(width: 8), 
-                        Text("Observations Note", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark, fontSize: 16))
+                        Text("Label Note", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark, fontSize: 16))
                       ]
                     ),
                     const SizedBox(height: 12),
