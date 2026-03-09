@@ -30,6 +30,7 @@ class HistoryProvider extends ChangeNotifier {
   int _totalAnalyses = 0;
   double _avgAccuracy = 0.0;
   int _todayCount = 0;
+  int _departmentAnalysesCount = 0;
 
   // --- Getters ---
   List<HistoryItem> get items => _displayItems;
@@ -42,6 +43,7 @@ class HistoryProvider extends ChangeNotifier {
   int get totalAnalyses => _totalAnalyses;
   double get avgAccuracy => _avgAccuracy;
   int get todayCount => _todayCount;
+  int get departmentAnalysesCount => _departmentAnalysesCount;
 
   List<HistoryItem> get recentItems => _allItems.take(5).toList();
 
@@ -64,6 +66,7 @@ class HistoryProvider extends ChangeNotifier {
       _totalAnalyses = stats['total'] ?? 0;
       _avgAccuracy = (stats['avg_accuracy'] ?? 0.0).toDouble();
       _todayCount = stats['today_count'] ?? 0;
+      _departmentAnalysesCount = stats['department_count'] ?? 0;
 
       _applyFilters();
     } catch (e) {

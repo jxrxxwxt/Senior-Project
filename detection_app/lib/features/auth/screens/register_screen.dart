@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 32),
                   const Text("Create Account", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   const SizedBox(height: 8),
-                  const Text("Join the Detection App community", style: TextStyle(color: AppColors.textGrey, fontSize: 15)),
+                  const Text("Join the GramVision Application", style: TextStyle(color: AppColors.textGrey, fontSize: 15)),
                   const SizedBox(height: 32),
         
                   // 2. Form Fields

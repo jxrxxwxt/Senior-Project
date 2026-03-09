@@ -17,20 +17,33 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
+  bool _expandDepartment = false;
+  AnimationController? _animController;
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (!auth.isGuest) {
         Provider.of<HistoryProvider>(context, listen: false).fetchAllData();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _animController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -287,8 +300,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:[
                 _buildHeader(auth.user),
-                const SizedBox(height: 24),
-                _buildTotalCard(provider.totalAnalyses),
+                const SizedBox(height: 16),
+                _buildLastUsedCard(provider),
+                const SizedBox(height: 16),
+                _buildExpandableCardSection(provider),
                 const SizedBox(height: 16),
                 Row(
                   children:[
@@ -324,7 +339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader(dynamic user) {
     final initial = user?.username.isNotEmpty == true ? user!.username[0].toUpperCase() : "U";
     final name = user?.username ?? "User";
-    final dept = user?.department ?? "Laboratory";
+    final dept = user?.department ?? "Department";
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -365,31 +380,137 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTotalCard(int total) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow:[
-          BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:[
-          const Row(
-            children:[
-              Icon(Icons.trending_up_rounded, color: Colors.white70, size: 20),
-              SizedBox(width: 8),
-              Text("Total Analyses Performed", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
-            ],
+  Widget _buildExpandableCardSection(HistoryProvider provider) {
+    final dept = Provider.of<AuthProvider>(context).user?.department ?? "Department";
+    final departmentCount = provider.departmentAnalysesCount;
+    
+    return Column(
+      children: [
+        // Main Card: Total Analyses (อยู่บนสุด)
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _expandDepartment = !_expandDepartment;
+              if (_expandDepartment) {
+                _animController?.forward();
+              } else {
+                _animController?.reverse();
+              }
+            });
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow:[
+                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:[
+                const Row(
+                  children:[
+                    Icon(Icons.trending_up_rounded, color: Colors.white70, size: 20),
+                    SizedBox(width: 8),
+                    Text("Your Total Analyses", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(provider.totalAnalyses.toString(), style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
+                    RotationTransition(
+                      turns: Tween(begin: 0.0, end: 0.5).animate(_animController ?? const AlwaysStoppedAnimation(0.0)),
+                      child: const Icon(Icons.expand_more_rounded, color: Colors.white70, size: 28),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(total.toString(), style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
-        ],
-      ),
+        ),
+        
+        // Department Card with smooth height & margin animation
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          height: _expandDepartment ? 163 : 0,
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: AnimatedBuilder(
+              animation: _animController ?? const AlwaysStoppedAnimation(0.0),
+              builder: (context, child) {
+                final animValue = _animController?.value ?? 0.0;
+                
+                return Opacity(
+                  opacity: animValue,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _expandDepartment = !_expandDepartment;
+                        if (_expandDepartment) {
+                          _animController?.forward();
+                        } else {
+                          _animController?.reverse();
+                        }
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.orange.shade200, width: 1.5),
+                        boxShadow:[
+                          BoxShadow(
+                            color: Colors.orange.withValues(alpha: 0.15 * animValue), 
+                            blurRadius: 10, 
+                            offset: const Offset(0, 4)
+                          ),
+                        ]
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:[
+                          Row(
+                            children:[
+                              Icon(Icons.domain_outlined, color: Colors.orange.shade600, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "$dept Analyses", 
+                                  style: TextStyle(color: Colors.orange.shade600, fontSize: 13, fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            departmentCount.toString(), 
+                            style: TextStyle(color: Colors.orange.shade800, fontSize: 36, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Total for your department",
+                            style: TextStyle(color: Colors.orange.shade600, fontSize: 12, fontWeight: FontWeight.w400),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -409,6 +530,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.textDark)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLastUsedCard(HistoryProvider provider) {
+    final lastUsed = provider.items.isNotEmpty ? provider.items.last.timestamp : null;
+    final lastUsedText = lastUsed != null 
+      ? DateFormat('MMM d, hh:mm a').format(lastUsed)
+      : "Never used";
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow:[
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ]
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Last Used", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(lastUsedText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+            ],
+          ),
         ],
       ),
     );

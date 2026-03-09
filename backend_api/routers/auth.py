@@ -64,7 +64,12 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer", "username": user.username}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "username": user.username,
+        "department": user.department  # ← เพิ่มตรงนี้
+    }
 
 # Helper Function สำหรับ Router อื่นๆ เพื่อดึง User ปัจจุบัน
 from fastapi.security import OAuth2PasswordBearer
