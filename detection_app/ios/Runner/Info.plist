@@ -45,5 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Photo Library Permissions -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs access to your photo library to save detected images.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to save detected images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to capture bacterial specimen images.</string>
 </dict>
 </plist>

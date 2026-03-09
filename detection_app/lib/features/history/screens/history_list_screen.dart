@@ -78,7 +78,7 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                     const SizedBox(height: 12),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 40.0), 
-                      child: Text("Sign in to view your analysis history.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.5))
+                      child: Text("To access dashboard features, statistics, and history, please sign in with your account.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.5))
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(

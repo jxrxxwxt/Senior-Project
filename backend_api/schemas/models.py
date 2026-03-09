@@ -25,6 +25,8 @@ class AnalysisResponse(BaseModel):
     shape: str
     accuracy: float
     timestamp: datetime
+    original_image_base64: str  # รูปปกติ base64
+    annotated_image_base64: str  # รูป+bounding box base64
 
 # --- Folder Schemas (เพิ่มใหม่) ---
 class FolderCreate(BaseModel):
@@ -47,8 +49,9 @@ class HistoryCreate(BaseModel):
     shape: str
     accuracy: float
     note: Optional[str] = None
-    # ★ แก้ไข: เปลี่ยนจาก folder_name เป็น folder_id 
     folder_id: Optional[int] = None
+    original_image_base64: str  # รูปปกติ base64
+    annotated_image_base64: str  # รูป+bounding box base64
 
 class HistoryResponse(HistoryCreate):
     id: int

@@ -37,8 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       if (_department == null) {
-        // แจ้งเตือนถ้ายังไม่เลือก Department
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select a department")));
+        DialogUtils.showError(context, "Please select a department");
         return;
       }
       if (_passCtrl.text != _confirmPassCtrl.text) {
@@ -55,8 +54,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _passCtrl.text,
         );
         if (mounted) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account created! Please sign in.")));
+          DialogUtils.showSuccess(context, "Account created! Please sign in.");
+          
+          // delay ให้ user เห็น notification ก่อน pop กลับ
+          await Future.delayed(const Duration(milliseconds: 800));
+          if (mounted) Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) DialogUtils.showError(context, "Registration failed");
