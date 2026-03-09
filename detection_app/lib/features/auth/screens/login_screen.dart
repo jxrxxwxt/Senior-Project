@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(onPressed: _handleLogin, child: const Text("Sign In")),
               
               const SizedBox(height: 24),
-              Row(children: [const Expanded(child: Divider()), const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("or")), const Expanded(child: Divider())]),
+              const Row(children: [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("or")), Expanded(child: Divider())]),
               const SizedBox(height: 24),
               
               OutlinedButton.icon(

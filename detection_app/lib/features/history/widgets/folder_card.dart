@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+// import '../../../core/constants/app_colors.dart';
 
 class FolderCard extends StatelessWidget {
   final String title;
@@ -16,9 +16,9 @@ class FolderCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2), // สีจางๆ
+          color: color.withValues(alpha: 0.2), // สีจางๆ
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,12 +14,12 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withOpacity(0.3),
-            child: const Center(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Center(
               child: Container(
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(16))),
-                child: CircularProgressIndicator(color: AppColors.primary),
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(16))),
+                child: const CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
           ),
