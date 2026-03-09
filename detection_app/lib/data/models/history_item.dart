@@ -7,7 +7,9 @@ class HistoryItem {
   final String shape;
   final double accuracy;
   final String? note;
-  final int? folderId; // ★ เพิ่มตัวนี้ (Foreign Key ไปหา Folder)
+  final int? folderId;
+  final String originalImageBase64;
+  final String annotatedImageBase64;
 
   HistoryItem({
     required this.id,
@@ -18,7 +20,9 @@ class HistoryItem {
     required this.shape,
     required this.accuracy,
     this.note,
-    this.folderId, // ★ เพิ่มใน Constructor
+    this.folderId,
+    required this.originalImageBase64,
+    required this.annotatedImageBase64,
   });
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
@@ -31,7 +35,9 @@ class HistoryItem {
       shape: json['shape'] ?? '',
       accuracy: (json['accuracy'] ?? 0.0).toDouble(),
       note: json['note'],
-      folderId: json['folder_id'], // ★ รับค่า int หรือ null จาก API
+      folderId: json['folder_id'],
+      originalImageBase64: json['original_image_base64'] ?? '',
+      annotatedImageBase64: json['annotated_image_base64'] ?? '',
     );
   }
 }

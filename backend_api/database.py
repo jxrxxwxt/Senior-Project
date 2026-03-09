@@ -57,7 +57,11 @@ class History(Base):
     gram_type = Column(String)
     shape = Column(String)
     accuracy = Column(Float)
-    image_path = Column(String, nullable=True) # เก็บ Path ของรูปใน Server
+    
+    # Images (Base64 encoded)
+    original_image_base64 = Column(Text, nullable=True)  # รูปปกติ
+    annotated_image_base64 = Column(Text, nullable=True)  # รูป+bounding box
+    
     note = Column(Text, nullable=True)
 
     # Relationships

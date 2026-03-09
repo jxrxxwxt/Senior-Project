@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/history_item.dart';
 import '../../../providers/history_provider.dart';
+import '../../detection/widgets/fullscreen_image_viewer.dart';
 
 class HistoryDetailScreen extends StatelessWidget {
   final HistoryItem item;
@@ -38,29 +40,8 @@ class HistoryDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           children:[
-            // -----------------------------------------------------------
-            // 1. Image Placeholder 
-            // -----------------------------------------------------------
-            // (ตอนนี้ใส่ Placeholder รอเฟสรูปภาพ)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 250, 
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F9FC), // สีเทาอ่อน
-                  border: Border.all(color: const Color(0xFFEDF1F7)),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image_not_supported_outlined, size: 50, color: Colors.grey),
-                    SizedBox(height: 12),
-                    Text("Original Image", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500))
-                  ],
-                ),
-              ),
-            ),
+            // --- Before & After Images ---
+            _buildBeforeAfterSection(item),
             const SizedBox(height: 24),
 
             // -----------------------------------------------------------
@@ -221,6 +202,174 @@ class HistoryDetailScreen extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  // --- Before & After Images Section ---
+  Widget _buildBeforeAfterSection(HistoryItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Detection Results",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // --- BEFORE ---
+            Expanded(
+              child: _buildImageCard(
+                label: "Before",
+                imageBase64: item.originalImageBase64,
+                isAnnotated: false,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // --- AFTER ---
+            Expanded(
+              child: _buildImageCard(
+                label: "After (with Bounding Box)",
+                imageBase64: item.annotatedImageBase64,
+                isAnnotated: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageCard({
+    required String label,
+    required String imageBase64,
+    required bool isAnnotated,
+  }) {
+    return Builder(
+      builder: (context) {
+        if (imageBase64.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  color: const Color(0xFFF7F9FC),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 32,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        "No Image",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          );
+        }
+
+        final imageBytes = base64Decode(imageBase64);
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => FullscreenImageViewer(
+                  imageBase64: imageBase64,
+                  title: label,
+                  isAnnotated: isAnnotated,
+                ),
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      imageBytes,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  // Overlay gradient + Icon
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.black.withValues(alpha: 0),
+                              Colors.black.withValues(alpha: 0.3),
+                            ],
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.zoom_in,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Tap to view full size → Save to Gallery",
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textGrey,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

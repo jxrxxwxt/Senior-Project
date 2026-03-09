@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,8 @@ import '../../../data/models/analysis_result.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/history_provider.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
-import '../widgets/save_folder_sheet.dart'; 
+import '../widgets/save_folder_sheet.dart';
+import '../widgets/fullscreen_image_viewer.dart'; 
 
 class ResultScreen extends StatefulWidget {
   final AnalysisResult result;
@@ -67,7 +69,9 @@ class _ResultScreenState extends State<ResultScreen> {
         "shape": widget.result.shape,
         "accuracy": widget.result.accuracy,
         "note": _noteCtrl.text.trim(),
-        "folder_id": folderId, // ★ เปลี่ยนเป็นส่ง folder_id แทนชื่อโฟลเดอร์
+        "folder_id": folderId,
+        "original_image_base64": widget.result.originalImageBase64,
+        "annotated_image_base64": widget.result.annotatedImageBase64,
       };
 
       await Provider.of<HistoryProvider>(context, listen: false).addHistoryItem(data);
@@ -106,16 +110,8 @@ class _ResultScreenState extends State<ResultScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children:[
-            // --- Image Preview ---
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.file(
-                widget.imageFile,
-                height: 250, 
-                width: double.infinity, 
-                fit: BoxFit.cover
-              ),
-            ),
+            // --- Before & After Images ---
+            _buildBeforeAfterSection(),
             const SizedBox(height: 24),
 
             // --- Item Name Input ---
@@ -214,6 +210,130 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   // --- Helper Widget ---
+  Widget _buildBeforeAfterSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Detection Results",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // --- BEFORE ---
+            Expanded(
+              child: _buildImageCard(
+                label: "Before",
+                imageBase64: widget.result.originalImageBase64,
+                isAnnotated: false,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // --- AFTER ---
+            Expanded(
+              child: _buildImageCard(
+                label: "After (with Bounding Box)",
+                imageBase64: widget.result.annotatedImageBase64,
+                isAnnotated: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageCard({
+    required String label,
+    required String imageBase64,
+    required bool isAnnotated,
+  }) {
+    final imageBytes = base64Decode(imageBase64);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => FullscreenImageViewer(
+              imageBase64: imageBase64,
+              title: label,
+              isAnnotated: isAnnotated,
+            ),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  children: [
+                    Image.memory(
+                      imageBytes,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ],
+                ),
+              ),
+              // Overlay gradient + Icon
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black.withValues(alpha: 0),
+                          Colors.black.withValues(alpha: 0.3),
+                        ],
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.zoom_in,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            "Tap to view full size → Save to Gallery",
+            style: TextStyle(
+              fontSize: 10,
+              color: AppColors.textGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _infoRow(String label, String value, {bool isHighlight = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
