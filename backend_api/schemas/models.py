@@ -26,6 +26,19 @@ class AnalysisResponse(BaseModel):
     accuracy: float
     timestamp: datetime
 
+# --- Folder Schemas (เพิ่มใหม่) ---
+class FolderCreate(BaseModel):
+    name: str
+
+class FolderResponse(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+    item_count: int = 0  # จำนวนไอเท็มในโฟลเดอร์ (คำนวณก่อนส่งกลับให้ UI)
+
+    class Config:
+        from_attributes = True
+
 # --- History Schemas ---
 class HistoryCreate(BaseModel):
     item_name: str
@@ -34,7 +47,8 @@ class HistoryCreate(BaseModel):
     shape: str
     accuracy: float
     note: Optional[str] = None
-    folder_name: Optional[str] = "General"
+    # ★ แก้ไข: เปลี่ยนจาก folder_name เป็น folder_id 
+    folder_id: Optional[int] = None
 
 class HistoryResponse(HistoryCreate):
     id: int

@@ -6,8 +6,8 @@ class HistoryItem {
   final String gramType;
   final String shape;
   final double accuracy;
-  final String? folderName;
   final String? note;
+  final int? folderId; // ★ เพิ่มตัวนี้ (Foreign Key ไปหา Folder)
 
   HistoryItem({
     required this.id,
@@ -17,21 +17,21 @@ class HistoryItem {
     required this.gramType,
     required this.shape,
     required this.accuracy,
-    this.folderName,
     this.note,
+    this.folderId, // ★ เพิ่มใน Constructor
   });
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
     return HistoryItem(
-      id: json['id'] ?? 0,
+      id: json['id'],
       itemName: json['item_name'] ?? 'Unknown Sample',
       timestamp: DateTime.parse(json['timestamp']),
       modelUsed: json['model_used'] ?? '',
       gramType: json['gram_type'] ?? '',
       shape: json['shape'] ?? '',
       accuracy: (json['accuracy'] ?? 0.0).toDouble(),
-      folderName: json['folder_name'] ?? 'General',
       note: json['note'],
+      folderId: json['folder_id'], // ★ รับค่า int หรือ null จาก API
     );
   }
 }

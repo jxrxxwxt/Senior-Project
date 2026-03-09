@@ -1,14 +1,21 @@
+import 'package:detection_app/features/history/widgets/filter_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/history_item.dart';
 import '../../../providers/history_provider.dart';
 import 'history_detail_screen.dart';
-import 'history_list_screen.dart'; // เพื่อเรียกใช้ FilterSheet
 
 class FolderDetailScreen extends StatefulWidget {
+  final int? folderId; // ★ ใช้ ID ในการอ้างอิง
   final String folderName;
-  const FolderDetailScreen({super.key, required this.folderName});
+  
+  const FolderDetailScreen({
+    super.key, 
+    required this.folderId, 
+    required this.folderName
+  });
 
   @override
   State<FolderDetailScreen> createState() => _FolderDetailScreenState();
@@ -16,18 +23,13 @@ class FolderDetailScreen extends StatefulWidget {
 
 class _FolderDetailScreenState extends State<FolderDetailScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
-  
-  bool _isSelectionMode = false;
-  final Set<int> _selectedIds = {};
 
   @override
   void initState() {
     super.initState();
-    // เมื่อเข้าหน้านี้ ให้เอาค่า Search เดิมใน Provider มาใส่ในช่องพิมพ์ (ถ้ามี)
+    // Reset ค้นหาเมื่อเข้าหน้าใหม่ เพื่อให้เห็นรายการทั้งหมดในโฟลเดอร์ก่อน
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<HistoryProvider>(context, listen: false);
-      // หากต้องการให้เริ่มหน้าด้วยค่าว่าง ให้ reset search ก่อนได้ที่นี่
-      // provider.setSearchQuery(""); 
+      Provider.of<HistoryProvider>(context, listen: false).setSearchQuery("");
     });
   }
 
@@ -35,11 +37,9 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
   Widget build(BuildContext context) {
     return Consumer<HistoryProvider>(
       builder: (context, provider, _) {
-        // ★ ดึงข้อมูลจาก provider.items (ซึ่งถูก Filter/Search มาจาก Provider แล้ว)
-        // แล้วนำมาคัดเฉพาะรายการที่อยู่ในโฟลเดอร์นี้
+        // ★ กรองรายการจาก Provider โดยใช้ Folder ID
         final displayItems = provider.items.where((item) {
-          final itemFolder = item.folderName ?? "General";
-          return itemFolder == widget.folderName;
+          return item.folderId == widget.folderId;
         }).toList();
 
         return Scaffold(
@@ -58,26 +58,21 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
               style: const TextStyle(
                 color: AppColors.textDark, 
                 fontWeight: FontWeight.bold, 
-                fontSize: 24 
+                fontSize: 24 // ★ Font ใหญ่สะใจตาม Ref
               )
             ),
             actions:[
               TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _isSelectionMode = !_isSelectionMode;
-                    _selectedIds.clear();
-                  });
-                },
+                onPressed: () => provider.toggleSelectionMode(),
                 icon: Icon(
-                  _isSelectionMode ? Icons.close : Icons.check_box_outlined, 
+                  provider.isSelectionMode ? Icons.close : Icons.check_box_outlined, 
                   size: 18, 
-                  color: _isSelectionMode ? Colors.red : AppColors.textGrey
+                  color: provider.isSelectionMode ? Colors.red : AppColors.textGrey
                 ),
                 label: Text(
-                  _isSelectionMode ? "Cancel" : "Select", 
+                  provider.isSelectionMode ? "Cancel" : "Select", 
                   style: TextStyle(
-                    color: _isSelectionMode ? Colors.red : AppColors.textGrey, 
+                    color: provider.isSelectionMode ? Colors.red : AppColors.textGrey, 
                     fontWeight: FontWeight.w600,
                     fontSize: 14
                   )
@@ -105,7 +100,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                         ),
                         child: TextField(
                           controller: _searchCtrl,
-                          // ★ อัปเดตการค้นหาไปที่ Provider ทันทีเพื่อให้กรองรายการแบบ Real-time
                           onChanged: (val) => provider.setSearchQuery(val),
                           decoration: const InputDecoration(
                             hintText: "Search by name or note...",
@@ -120,12 +114,11 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                     const SizedBox(width: 12),
                     InkWell(
                       onTap: () {
-                        // ★ เปิดแผ่น Filter ขึ้นมาเพื่อให้ User เลือกเงื่อนไข
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (_) => const FilterSheet(), // เรียกใช้ตัวเดียวกับหน้า History หลัก
+                          builder: (_) => const FilterSheet(),
                         );
                       },
                       borderRadius: BorderRadius.circular(12),
@@ -135,7 +128,7 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFEDF1F7)),
                         ),
-                        child: const Icon(Icons.filter_list, color: AppColors.textDark, size: 20),
+                        child: const Icon(Icons.tune_rounded, color: AppColors.textDark, size: 20),
                       ),
                     ),
                   ],
@@ -160,16 +153,19 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 8),
                       child: Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey),
                     ),
-                    Text(
-                      widget.folderName,
-                      style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w600, fontSize: 14),
+                    Expanded(
+                      child: Text(
+                        widget.folderName,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
               ),
 
               // -------------------------------------------------------
-              // 3. Section Header
+              // 3. Section Header & Delete Selected
               // -------------------------------------------------------
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -180,19 +176,9 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                       "Items in this folder",
                       style: TextStyle(color: AppColors.textGrey, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
-                    if (_isSelectionMode && _selectedIds.isNotEmpty)
+                    if (provider.isSelectionMode && provider.selectedIds.isNotEmpty)
                        GestureDetector(
-                         onTap: () async {
-                           // แสดงการยืนยันการลบแบบเดียวกับหน้าหลัก (ใช้ Logic ลบจาก Provider)
-                           for (var id in _selectedIds) {
-                             provider.toggleItemSelection(id); // เลือกรายการที่จะลบใน Provider
-                           }
-                           await provider.deleteSelectedItems(); // ยิง API ลบ
-                           setState(() {
-                             _isSelectionMode = false;
-                             _selectedIds.clear();
-                           });
-                         },
+                         onTap: () => _showDeleteConfirm(context, provider),
                          child: const Text("Delete Selected", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
                        )
                   ],
@@ -212,7 +198,7 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                         itemCount: displayItems.length,
                         itemBuilder: (context, index) {
                           final item = displayItems[index];
-                          return _buildItemCard(context, item);
+                          return _buildItemCard(context, item, provider);
                         },
                       ),
               ),
@@ -223,12 +209,12 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
     );
   }
 
-  Widget _buildItemCard(BuildContext context, HistoryItem item) {
-    final isSelected = _selectedIds.contains(item.id);
-    final dateStr = "${item.timestamp.day}/${item.timestamp.month}/${item.timestamp.year}"; 
+  Widget _buildItemCard(BuildContext context, HistoryItem item, HistoryProvider provider) {
+    final isSelected = provider.selectedIds.contains(item.id);
+    final dateStr = DateFormat('dd/MM/yyyy').format(item.timestamp);
     
     String subtitleStr = "$dateStr • ${item.accuracy}%";
-    if (item.gramType != "Unknown" && item.gramType.isNotEmpty) {
+    if (item.gramType.isNotEmpty && item.gramType != "Unknown") {
       subtitleStr += " • ${item.gramType}";
     }
 
@@ -251,11 +237,8 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            if (_isSelectionMode) {
-              setState(() {
-                if (isSelected) _selectedIds.remove(item.id);
-                else _selectedIds.add(item.id);
-              });
+            if (provider.isSelectionMode) {
+              provider.toggleItemSelection(item.id);
             } else {
               Navigator.push(context, MaterialPageRoute(
                 builder: (_) => HistoryDetailScreen(item: item)
@@ -266,7 +249,7 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children:[
-                if (_isSelectionMode)
+                if (provider.isSelectionMode)
                   Padding(
                     padding: const EdgeInsets.only(right: 16),
                     child: Container(
@@ -310,10 +293,40 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                   ),
                 ),
                 
-                if (!_isSelectionMode)
+                if (!provider.isSelectionMode)
                   const Icon(Icons.chevron_right_rounded, color: AppColors.textGrey, size: 20),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context, HistoryProvider provider) {
+    showDialog(
+      context: context, 
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(padding: const EdgeInsets.all(16), decoration: const BoxDecoration(color: Color(0xFFFFEBEE), shape: BoxShape.circle), child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 32)),
+              const SizedBox(height: 16),
+              const Text("Delete Selected?", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+              const SizedBox(height: 8),
+              const Text("This action cannot be undone.", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textGrey)),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel"))),
+                  const SizedBox(width: 12),
+                  Expanded(child: ElevatedButton(onPressed: () { Navigator.pop(ctx); provider.deleteSelected(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text("Delete", style: TextStyle(fontWeight: FontWeight.bold)))),
+                ],
+              )
+            ],
           ),
         ),
       ),

@@ -24,14 +24,31 @@ class User(Base):
     department = Column(String)
     hashed_password = Column(String)
     
-    # Relationship
-    history = relationship("History", back_populates="owner")
+    # Relationships
+    folders = relationship("Folder", back_populates="owner", cascade="all, delete-orphan")
+    history = relationship("History", back_populates="owner", cascade="all, delete-orphan")
+
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    name = Column(String, index=True)
+    created_at = Column(DateTime, default=datetime.now)
+
+    # Relationships
+    owner = relationship("User", back_populates="folders")
+    items = relationship("History", back_populates="folder", cascade="all, delete-orphan")
 
 class History(Base):
     __tablename__ = "history"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    # ★ แก้ไข: เปลี่ยนจาก folder_name เป็น folder_id เพื่อผูกความสัมพันธ์กับตาราง Folders
+    folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True) 
+    
     item_name = Column(String)
     timestamp = Column(DateTime, default=datetime.now)
     
@@ -42,9 +59,10 @@ class History(Base):
     accuracy = Column(Float)
     image_path = Column(String, nullable=True) # เก็บ Path ของรูปใน Server
     note = Column(Text, nullable=True)
-    folder_name = Column(String, default="General") # สำหรับจัดหมวดหมู่ Folder
 
+    # Relationships
     owner = relationship("User", back_populates="history")
+    folder = relationship("Folder", back_populates="items")
 
 # Dependency เพื่อใช้ใน Routers
 def get_db():
