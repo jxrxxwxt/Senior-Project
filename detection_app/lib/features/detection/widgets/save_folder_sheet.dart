@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/apple_sheet_wrapper.dart';
 import '../../../providers/history_provider.dart';
-import '../../../core/utils/dialog_utils.dart'; // อย่าลืม Import DialogUtils เพื่อโชว์ Loading
+import '../../../core/utils/dialog_utils.dart';
 
 class SaveFolderSheet extends StatefulWidget {
   const SaveFolderSheet({super.key});
@@ -13,15 +13,19 @@ class SaveFolderSheet extends StatefulWidget {
 }
 
 class _SaveFolderSheetState extends State<SaveFolderSheet> {
-  int? _selectedFolderId; // เปลี่ยนเป็นเก็บ ID แทนการเก็บชื่อโฟลเดอร์
+  int? _selectedFolderId; 
   bool _isCreatingNewFolder = false; 
   final TextEditingController _newFolderCtrl = TextEditingController();
   final FocusNode _folderFocusNode = FocusNode();
+  
+  // เพิ่ม ScrollController เพื่อใช้ควบคุม Scrollbar
+  final ScrollController _scrollController = ScrollController();
+  
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    // ให้ระบบเช็คและอัปเดตสีปุ่มเมื่อมีการพิมพ์
     _newFolderCtrl.addListener(() {
       setState(() {});
     });
@@ -31,29 +35,24 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
   void dispose() {
     _newFolderCtrl.dispose();
     _folderFocusNode.dispose();
+    _scrollController.dispose(); // อย่าลืม dispose controller
     super.dispose();
   }
 
-  // --- ฟังก์ชันหลักเมื่อกดปุ่ม Save ---
   void _handleSave() async {
     final provider = Provider.of<HistoryProvider>(context, listen: false);
     
-    // 1. ถ้า User อยู่ในโหมด "สร้างโฟลเดอร์ใหม่"
     if (_isCreatingNewFolder) {
       String newName = _newFolderCtrl.text.trim();
       if (newName.isEmpty) return;
 
       DialogUtils.showLoading(context);
       try {
-        // สั่งสร้าง Folder ในฐานข้อมูล
         await provider.createNewFolder(newName);
-        
-        // ค้นหา ID ของโฟลเดอร์ที่เพิ่งสร้าง
         final newFolder = provider.folders.firstWhere((f) => f.name == newName);
         
         if (mounted) {
           DialogUtils.hideLoading(context);
-          // ปิด Sheet และส่ง ID กลับไปให้หน้า ResultScreen
           Navigator.pop(context, newFolder.id); 
         }
       } catch (e) {
@@ -62,10 +61,8 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
           DialogUtils.showError(context, "Could not create folder. Please try again.");
         }
       }
-    } 
-    // 2. ถ้า User เลือก "โฟลเดอร์ที่มีอยู่แล้ว" หรือ "No Folder"
-    else {
-      Navigator.pop(context, _selectedFolderId); // ส่ง ID กลับไป (null = No Folder)
+    } else {
+      Navigator.pop(context, _selectedFolderId); 
     }
   }
 
@@ -73,19 +70,24 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
   Widget build(BuildContext context) {
     return Consumer<HistoryProvider>(
       builder: (context, provider, _) {
-        final existingFolders = provider.folders; // ดึง FolderModel จริงๆ จาก Provider
+        final existingFolders = provider.folders; 
+        
+        final filteredFolders = existingFolders.where((folder) {
+          return folder.name.toLowerCase().contains(_searchQuery.toLowerCase());
+        }).toList();
 
-        // ปุ่ม Save จะกดได้เมื่อ (1) ไม่ได้สร้างโฟลเดอร์ใหม่ หรือ (2) กำลังสร้างแต่พิมพ์ชื่อแล้ว
         bool isInputValid = !_isCreatingNewFolder || (_isCreatingNewFolder && _newFolderCtrl.text.trim().isNotEmpty);
 
         return AppleSheetWrapper(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            // ปรับ Padding ด้านขวาให้ลดลงนิดนึง เพื่อแบ่งพื้นที่ให้ Scrollbar
+            padding: const EdgeInsets.fromLTRB(24, 0, 16, 0), 
             child: Column(
-              children:[
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children:[
+                  children: [
                     const SizedBox(width: 40), 
                     const Text("Save to Folder", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                     IconButton(
@@ -94,73 +96,127 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                     )
                   ],
                 ),
-                const Text("Choose where to save this analysis", style: TextStyle(color: Colors.grey, fontSize: 14)),
-                const SizedBox(height: 24),
+                // ปรับระยะด้านขวาของข้อความให้เท่ากับด้านซ้าย
+                const Padding(
+                  padding: EdgeInsets.only(right: 8), 
+                  child: Text("Choose where to save this analysis", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ),
+                const SizedBox(height: 16),
 
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children:[
-                        // 1. No Folder (ส่งค่า null)
-                        _buildOptionItem(
-                          title: "No Folder",
-                          icon: Icons.description_outlined,
-                          iconColor: AppColors.textGrey,
-                          folderId: null, 
-                        ),
-                        const SizedBox(height: 12),
-                        
-                        // 2. Existing Folders
-                        ...existingFolders.map((folder) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildOptionItem(
-                            title: folder.name,
-                            icon: Icons.folder_open_rounded,
-                            iconColor: const Color(0xFFFF7043),
-                            folderId: folder.id, // ใช้ ID อ้างอิง
-                          ),
-                        )),
-
-                        // 3. Create New Folder Section
-                        _buildNewFolderSection(),
-                      ],
+                // ================= 1. ช่องค้นหา (Fixed) =================
+                Padding(
+                  padding: const EdgeInsets.only(right: 8), // จัดให้ขอบตรงกับกล่องด้านล่าง
+                  child: TextField(
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: InputDecoration(
+                      hintText: "Search folder...",
+                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFFF7F9FC),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+
+                // ================= 2. No Folder (Fixed) =================
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _buildOptionItem(
+                    title: "No Folder",
+                    icon: Icons.description_outlined,
+                    iconColor: AppColors.textGrey,
+                    folderId: null, 
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // ================= 3. Existing Folders (Scrollable with Scrollbar) =================
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  // ★ ครอบด้วย RawScrollbar เพื่อปรับแต่งหน้าตาแถบเลื่อน
+                  child: RawScrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true, // บังคับให้แสดงตลอดเวลา จะได้รู้ว่าเลื่อนได้
+                    thickness: 4.0, // ปรับความบาง (ค่าน้อยยิ่งบาง)
+                    radius: const Radius.circular(10), // ปรับความมนของขอบ
+                    thumbColor: Colors.grey.withOpacity(0.3), // สีของแถบเลื่อน
+                    padding: const EdgeInsets.only(right: 0), // ระยะห่างจากขอบขวา
+                    child: SingleChildScrollView(
+                      controller: _scrollController, // ต้องใส่ controller ให้ตรงกับ Scrollbar
+                      child: Padding(
+                        // เว้นระยะขวาเผื่อให้ Scrollbar ไม่ทับกับเนื้อหา
+                        padding: const EdgeInsets.only(right: 12), 
+                        child: Column(
+                          children: [
+                            if (filteredFolders.isEmpty && _searchQuery.isNotEmpty)
+                               const Padding(
+                                 padding: EdgeInsets.symmetric(vertical: 20),
+                                 child: Text("No folders match your search.", style: TextStyle(color: Colors.grey)),
+                               ),
+                            ...filteredFolders.map((folder) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildOptionItem(
+                                title: folder.name,
+                                icon: Icons.folder_open_rounded,
+                                iconColor: const Color(0xFFFF7043),
+                                folderId: folder.id, 
+                              ),
+                            )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ================= 4. Create New Folder (Fixed) =================
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _buildNewFolderSection(),
                 ),
                 
                 const SizedBox(height: 32),
 
-                Row(
-                  children:[
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Color(0xFFEDF1F7)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          foregroundColor: AppColors.textDark,
+                // ================= 5. Buttons (Fixed) =================
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: const BorderSide(color: Color(0xFFEDF1F7)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            foregroundColor: AppColors.textDark,
+                          ),
+                          child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
-                        child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: isInputValid ? _handleSave : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isInputValid ? AppColors.primary : const Color(0xFFFAB06E).withValues(alpha: 0.5),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: isInputValid ? 2 : 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          disabledBackgroundColor: const Color(0xFFFAB06E).withValues(alpha: 0.5),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: isInputValid ? _handleSave : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isInputValid ? AppColors.primary : const Color(0xFFFAB06E).withOpacity(0.5),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: isInputValid ? 2 : 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            disabledBackgroundColor: const Color(0xFFFAB06E).withOpacity(0.5),
+                          ),
+                          child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         ),
-                        child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               ],
             ),
@@ -189,20 +245,28 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
             color: isSelected ? AppColors.primary : const Color(0xFFEDF1F7),
             width: isSelected ? 1.5 : 1,
           ),
-          boxShadow:[
-            if (isSelected) BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
-            else BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))
+          boxShadow: [
+            if (isSelected) BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
+            else BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))
           ]
         ),
         child: Row(
-          children:[
+          children: [
             Icon(icon, color: isSelected ? AppColors.primary : iconColor, size: 22),
             const SizedBox(width: 16),
-            Text(title, style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, 
-              fontSize: 15, 
-              color: isSelected ? AppColors.primary : AppColors.textDark
-            )),
+            // ใช้ Expanded ครอบ Text เพื่อป้องกันปัญหาข้อความยาวทะลุจอ
+            Expanded(
+              child: Text(
+                title, 
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, 
+                  fontSize: 15, 
+                  color: isSelected ? AppColors.primary : AppColors.textDark
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis, // ถ้าชื่อยาวเกินให้แสดงเป็น ...
+              ),
+            ),
           ],
         ),
       ),
@@ -217,7 +281,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
         if (!active) {
           setState(() {
             _isCreatingNewFolder = true;
-            _selectedFolderId = -2; // ตั้งค่า ID หลอกๆ เพื่อไม่ให้ไปซ้ำกับอันที่มีอยู่
+            _selectedFolderId = -2; 
           });
           _folderFocusNode.requestFocus();
         }
@@ -233,8 +297,8 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
             color: active ? AppColors.purpleIcon : const Color(0xFFE8D0FF),
             width: active ? 1.5 : 1,
           ),
-          boxShadow:[
-            if (active) BoxShadow(color: AppColors.purpleIcon.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
+          boxShadow: [
+            if (active) BoxShadow(color: AppColors.purpleIcon.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
           ]
         ),
         child: active 
@@ -242,7 +306,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
-                  children:[
+                  children: [
                     Icon(Icons.add_box_rounded, color: AppColors.purpleIcon, size: 22),
                     SizedBox(width: 16),
                     Text("New Folder", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.purpleIcon, fontSize: 15)),
@@ -264,7 +328,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
               ],
             )
           : const Row(
-              children:[
+              children: [
                 Icon(Icons.add_box_rounded, color: AppColors.purpleIcon, size: 22),
                 SizedBox(width: 16),
                 Text("Create New Folder", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.purpleIcon, fontSize: 15)),
