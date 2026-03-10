@@ -145,7 +145,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                     thumbVisibility: true, // บังคับให้แสดงตลอดเวลา จะได้รู้ว่าเลื่อนได้
                     thickness: 4.0, // ปรับความบาง (ค่าน้อยยิ่งบาง)
                     radius: const Radius.circular(10), // ปรับความมนของขอบ
-                    thumbColor: Colors.grey.withOpacity(0.3), // สีของแถบเลื่อน
+                    thumbColor: Colors.grey.withValues(alpha: 0.3), // สีของแถบเลื่อน
                     padding: const EdgeInsets.only(right: 0), // ระยะห่างจากขอบขวา
                     child: SingleChildScrollView(
                       controller: _scrollController, // ต้องใส่ controller ให้ตรงกับ Scrollbar
@@ -205,12 +205,12 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                         child: ElevatedButton(
                           onPressed: isInputValid ? _handleSave : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isInputValid ? AppColors.primary : const Color(0xFFFAB06E).withOpacity(0.5),
+                            backgroundColor: isInputValid ? AppColors.primary : const Color(0xFFFAB06E).withValues(alpha: 0.5),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             elevation: isInputValid ? 2 : 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            disabledBackgroundColor: const Color(0xFFFAB06E).withOpacity(0.5),
+                            disabledBackgroundColor: const Color(0xFFFAB06E).withValues(alpha: 0.5),
                           ),
                           child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         ),
@@ -246,8 +246,8 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: [
-            if (isSelected) BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
-            else BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))
+            if (isSelected) BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
+            else BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))
           ]
         ),
         child: Row(
@@ -298,7 +298,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
             width: active ? 1.5 : 1,
           ),
           boxShadow: [
-            if (active) BoxShadow(color: AppColors.purpleIcon.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
+            if (active) BoxShadow(color: AppColors.purpleIcon.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
           ]
         ),
         child: active 
