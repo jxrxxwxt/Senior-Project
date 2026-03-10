@@ -44,12 +44,15 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              // Icon
+              // Image
               Center(
                 child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
-                  child: const Icon(Icons.people_alt_rounded, size: 40, color: Colors.white),
+                  padding: const EdgeInsets.all(0),
+                  // decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+                  child: Image.asset(
+                    "assets/images/logo.png", 
+                    width: 100, 
+                    height: 100,),
                 ),
               ),
               const SizedBox(height: 24),
