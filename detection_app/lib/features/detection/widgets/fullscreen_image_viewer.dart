@@ -95,9 +95,13 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         children: [
           Expanded(
             child: Center(
-              child: Image.memory(
-                imageBytes,
-                fit: BoxFit.contain,
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.memory(
+                  imageBytes,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),

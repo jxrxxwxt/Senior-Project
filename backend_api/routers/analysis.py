@@ -5,7 +5,7 @@ from ultralytics import YOLO
 from schemas.models import AnalysisResponse
 from datetime import datetime
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 import io
 import base64
 from typing import List
@@ -18,8 +18,10 @@ router = APIRouter(prefix="/analysis", tags=["Analysis"])
 LABEL_MAP = {
     "poscoc": ("Gram-positive", "Cocci"),
     "posbasi": ("Gram-positive", "Bacilli"),
+    "posbaci": ("Gram-positive", "Bacilli"),
     "negcoc": ("Gram-negative", "Cocci"),
     "negbasi": ("Gram-negative", "Bacilli"),
+    "negbaci": ("Gram-negative", "Bacilli")
 }
 
 # Load Models (Global variables)
@@ -90,6 +92,10 @@ async def analyze_image(
     # 2. อ่านไฟล์รูปภาพ
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes))
+    
+    # แก้ไขปัญหา Orientation (การหมุนของรูปภาพจาก EXIF data)
+    image = ImageOps.exif_transpose(image)
+    
     original_image = image.copy()
 
     # 3. ให้โมเดลทำนาย (Predict)
@@ -121,7 +127,7 @@ async def analyze_image(
 
     # ดึงชื่อ Class จากโมเดล
     detected_class_name = model.names[cls_id]
-    gram_type, shape = LABEL_MAP.get(detected_class_name, ("Unknown", "Unknown"))
+    gram_type, shape = LABEL_MAP.get(detected_class_name, (f"Unknown ({detected_class_name})", "Unknown"))
 
     # 5. วาด bounding boxes บนรูป
     annotated_image = _draw_bounding_boxes(original_image, boxes, boxes.cls, model)
