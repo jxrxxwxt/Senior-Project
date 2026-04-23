@@ -17,6 +17,7 @@ dependencies:
   path: ^1.9.0
   gal: ^2.2.0                # บันทึกรูปไปยัง Gallery (ทันสมัยกว่า)
   permission_handler: ^12.0.1 # ขออนุญาตเข้าถึง storage
+  flutter_image_compress: ^2.4.0 # บีบอัดรูปก่อนส่งไป API
   
   # State Management
   provider: ^6.1.1

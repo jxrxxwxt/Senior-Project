@@ -14,6 +14,8 @@ import '../../dashboard/screens/dashboard_screen.dart';
 import '../widgets/save_folder_sheet.dart';
 import '../widgets/fullscreen_image_viewer.dart'; 
 import '../../../data/repositories/detection_repository.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ResultScreen extends StatefulWidget {
   final File imageFile;
@@ -39,8 +41,13 @@ class _ResultScreenState extends State<ResultScreen> {
 
   void _startAnalysis() async {
     try {
+      // 1. นำรูปภาพต้นฉบับมาลดขนาดและบีบอัดก่อนส่ง
+      File compressedImage = await _compressAndResizeImage(widget.imageFile);
+
+      // 2. ส่งรูปที่ถูกย่อแล้ว (compressedImage) ไปที่ Repository แทน
       final repo = DetectionRepository();
-      final result = await repo.analyzeImage(widget.imageFile, widget.modelName);
+      final result = await repo.analyzeImage(compressedImage, widget.modelName);
+      
       if (mounted) {
         setState(() {
           _analysisResult = result;
@@ -54,6 +61,36 @@ class _ResultScreenState extends State<ResultScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  // --- ฟังก์ชัน Helper สำหรับย่อขนาดรูปภาพ ---
+  Future<File> _compressAndResizeImage(File file) async {
+    try {
+      final originalSize = await file.length();
+      debugPrint('➡️ Original size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
+
+      final tempDir = await getTemporaryDirectory();
+      final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      var result = await FlutterImageCompress.compressAndGetFile(
+        file.absolute.path,
+        targetPath,
+        minWidth: 640,
+        minHeight: 640,
+        quality: 85,
+        format: CompressFormat.jpeg,
+      );
+
+      if (result != null) {
+        final compressedSize = await result.length();
+        debugPrint('✅ Compressed size: ${(compressedSize / 1024).toStringAsFixed(2)} KB');
+        return File(result.path);
+      }
+      return file;
+    } catch (e) {
+      debugPrint("Image Compression Error: $e");
+      return file;
     }
   }
 
