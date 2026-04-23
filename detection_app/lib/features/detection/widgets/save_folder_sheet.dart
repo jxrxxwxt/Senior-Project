@@ -18,7 +18,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
   final TextEditingController _newFolderCtrl = TextEditingController();
   final FocusNode _folderFocusNode = FocusNode();
   
-  // เพิ่ม ScrollController เพื่อใช้ควบคุม Scrollbar
   final ScrollController _scrollController = ScrollController();
   
   String _searchQuery = '';
@@ -35,7 +34,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
   void dispose() {
     _newFolderCtrl.dispose();
     _folderFocusNode.dispose();
-    _scrollController.dispose(); // อย่าลืม dispose controller
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -80,7 +79,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
 
         return AppleSheetWrapper(
           child: Padding(
-            // ปรับ Padding ด้านขวาให้ลดลงนิดนึง เพื่อแบ่งพื้นที่ให้ Scrollbar
             padding: const EdgeInsets.fromLTRB(24, 0, 16, 0), 
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -96,16 +94,14 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                     )
                   ],
                 ),
-                // ปรับระยะด้านขวาของข้อความให้เท่ากับด้านซ้าย
                 const Padding(
                   padding: EdgeInsets.only(right: 8), 
                   child: Text("Choose where to save this analysis", style: TextStyle(color: Colors.grey, fontSize: 14)),
                 ),
                 const SizedBox(height: 16),
 
-                // ================= 1. ช่องค้นหา (Fixed) =================
                 Padding(
-                  padding: const EdgeInsets.only(right: 8), // จัดให้ขอบตรงกับกล่องด้านล่าง
+                  padding: const EdgeInsets.only(right: 8),
                   child: TextField(
                     onChanged: (value) => setState(() => _searchQuery = value),
                     decoration: InputDecoration(
@@ -124,7 +120,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                 ),
                 const SizedBox(height: 16),
 
-                // ================= 2. No Folder (Fixed) =================
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: _buildOptionItem(
@@ -136,21 +131,18 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                 ),
                 const SizedBox(height: 12),
                 
-                // ================= 3. Existing Folders (Scrollable with Scrollbar) =================
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 200),
-                  // ★ ครอบด้วย RawScrollbar เพื่อปรับแต่งหน้าตาแถบเลื่อน
                   child: RawScrollbar(
                     controller: _scrollController,
-                    thumbVisibility: true, // บังคับให้แสดงตลอดเวลา จะได้รู้ว่าเลื่อนได้
-                    thickness: 4.0, // ปรับความบาง (ค่าน้อยยิ่งบาง)
-                    radius: const Radius.circular(10), // ปรับความมนของขอบ
-                    thumbColor: Colors.grey.withValues(alpha: 0.3), // สีของแถบเลื่อน
-                    padding: const EdgeInsets.only(right: 0), // ระยะห่างจากขอบขวา
+                    thumbVisibility: true, 
+                    thickness: 4.0,
+                    radius: const Radius.circular(10),
+                    thumbColor: Colors.grey.withValues(alpha: 0.3), 
+                    padding: const EdgeInsets.only(right: 0), 
                     child: SingleChildScrollView(
-                      controller: _scrollController, // ต้องใส่ controller ให้ตรงกับ Scrollbar
+                      controller: _scrollController,
                       child: Padding(
-                        // เว้นระยะขวาเผื่อให้ Scrollbar ไม่ทับกับเนื้อหา
                         padding: const EdgeInsets.only(right: 12), 
                         child: Column(
                           children: [
@@ -175,7 +167,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                   ),
                 ),
 
-                // ================= 4. Create New Folder (Fixed) =================
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: _buildNewFolderSection(),
@@ -183,7 +174,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                 
                 const SizedBox(height: 32),
 
-                // ================= 5. Buttons (Fixed) =================
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Row(
@@ -254,7 +244,6 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
           children: [
             Icon(icon, color: isSelected ? AppColors.primary : iconColor, size: 22),
             const SizedBox(width: 16),
-            // ใช้ Expanded ครอบ Text เพื่อป้องกันปัญหาข้อความยาวทะลุจอ
             Expanded(
               child: Text(
                 title, 
@@ -264,7 +253,7 @@ class _SaveFolderSheetState extends State<SaveFolderSheet> {
                   color: isSelected ? AppColors.primary : AppColors.textDark
                 ),
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis, // ถ้าชื่อยาวเกินให้แสดงเป็น ...
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

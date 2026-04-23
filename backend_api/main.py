@@ -32,5 +32,4 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    # รันด้วยคำสั่ง: python main.py
     uvicorn.run(app, host="0.0.0.0", port=8000)

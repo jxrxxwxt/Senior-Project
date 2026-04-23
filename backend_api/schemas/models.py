@@ -60,3 +60,17 @@ class HistoryResponse(HistoryCreate):
     
     class Config:
         from_attributes = True
+        
+class HistoryListResponse(BaseModel):
+    id: int
+    item_name: str
+    model_used: str
+    gram_type: str
+    shape: str
+    accuracy: float
+    note: Optional[str] = None
+    folder_id: Optional[int] = None
+    timestamp: datetime
+    
+    class Config:
+        from_attributes = True

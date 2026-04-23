@@ -55,7 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       backgroundColor: const Color(0xFFFAFAFA),
       extendBody: true,
       
-      // 1. ส่วนเนื้อหาหลัก
       body: IndexedStack(
         index: _currentIndex > 1 ? 0 : _currentIndex,
         children:[
@@ -64,7 +63,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         ],
       ),
 
-      // 2. ปุ่ม FAB (กล้องวิเคราะห์)
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         height: 60, width: 60, 
@@ -93,8 +91,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           child: const Icon(Icons.crop_free_rounded, color: Colors.white, size: 28),
         ),
       ),
-
-      // 3. Bottom Nav Bar (เส้นตรงเรียบๆ + ไอคอนกุญแจ)
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         elevation: 15,
@@ -103,18 +99,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children:[
-              // Tab ซ้าย: Dashboard
               Expanded(
                 child: _buildTabItem(
                   icon: Icons.home_outlined, 
                   activeIcon: Icons.home_rounded, 
                   label: "Dashboard", 
                   index: 0,
-                  isLocked: isGuest, // ★ ส่งสถานะ Guest เพื่อโชว์กุญแจ
+                  isLocked: isGuest,
                 ),
               ),
-              
-              // ตรงกลาง: ข้อความ Analysis
               const Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -131,15 +124,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ],
                 ),
               ),
-              
-              // Tab ขวา: History
               Expanded(
                 child: _buildTabItem(
                   icon: Icons.history_outlined, 
                   activeIcon: Icons.history_rounded, 
                   label: "History", 
                   index: 1,
-                  isLocked: isGuest, // ★ ส่งสถานะ Guest เพื่อโชว์กุญแจ
+                  isLocked: isGuest,
                 ),
               ),
             ],
@@ -149,7 +140,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  // --- Widget สร้างปุ่ม Tab พร้อมไอคอนกุญแจ (สำคัญ!) ---
   Widget _buildTabItem({
     required IconData icon, 
     required IconData activeIcon, 
@@ -169,7 +159,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // ไอคอนหลักและข้อความ
           Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -186,12 +175,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               ),
             ],
           ),
-          
-          // ★ ไอคอนกุญแจล็อค (แสดงเฉพาะ Guest) ★
           if (isLocked)
             Positioned(
               top: 2, 
-              right: 20, // ปรับตำแหน่งให้แปะมุมขวาบนของไอคอนหลัก
+              right: 20,
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
@@ -206,20 +193,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  // ----------------------------------------------------------------------
-  // หน้า UI หลักของ Dashboard
-  // ----------------------------------------------------------------------
   Widget _buildDashboardTab() {
     final auth = Provider.of<AuthProvider>(context);
     
-    // --- โหมด Guest (UI ตาม Ref 100%) ---
     if (auth.isGuest) {
       return Scaffold(
         backgroundColor: const Color(0xFFFAFAFA),
         body: SafeArea(
           child: Column(
             children: [
-              // Header แบบ Guest
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -241,7 +223,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
               ),
               
-              // เนื้อหาตรงกลาง
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -281,14 +262,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ],
                 ),
               ),
-              const SizedBox(height: 80), // เว้นที่ด้านล่างให้ Nav Bar
+              const SizedBox(height: 80),
             ],
           ),
         ),
       );
     }
 
-    // --- โหมด Member (เหมือนเดิม) ---
     return Consumer<HistoryProvider>(
       builder: (context, provider, _) {
         return RefreshIndicator(
@@ -333,8 +313,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       }
     );
   }
-
-  // --- Sub Widgets (Member) ---
 
   Widget _buildHeader(dynamic user) {
     final initial = user?.username.isNotEmpty == true ? user!.username[0].toUpperCase() : "U";
@@ -386,7 +364,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     
     return Column(
       children: [
-        // Main Card: Total Analyses (อยู่บนสุด)
         GestureDetector(
           onTap: () {
             setState(() {
@@ -434,7 +411,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
         ),
         
-        // Department Card with smooth height & margin animation
         AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,

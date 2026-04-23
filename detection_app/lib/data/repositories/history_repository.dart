@@ -1,4 +1,4 @@
-// import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/history_item.dart';
 import '../models/folder_model.dart';
 import '../services/api_service.dart';
@@ -6,16 +6,15 @@ import '../services/api_service.dart';
 class HistoryRepository {
   final ApiService _apiService = ApiService();
 
-  // ---------------------------------------------------------------------------
-  // 📂 ส่วนจัดการ Folder
-  // ---------------------------------------------------------------------------
-  
   Future<List<FolderModel>> getFolders({String? search}) async {
     try {
-      final response = await _apiService.client.get('/history/folders', queryParameters: {
+      final response =
+          await _apiService.client.get('/history/folders', queryParameters: {
         if (search != null && search.isNotEmpty) 'search': search,
       });
-      return (response.data as List).map((item) => FolderModel.fromJson(item)).toList();
+      return (response.data as List)
+          .map((item) => FolderModel.fromJson(item))
+          .toList();
     } catch (e) {
       return [];
     }
@@ -37,38 +36,41 @@ class HistoryRepository {
     await _apiService.client.delete('/history/folders/$folderId');
   }
 
-  // ---------------------------------------------------------------------------
-  // 📄 ส่วนจัดการ History Item
-  // ---------------------------------------------------------------------------
-
   Future<List<HistoryItem>> getHistory({int? folderId, String? search}) async {
     try {
-      final response = await _apiService.client.get('/history', queryParameters: {
+      final response =
+          await _apiService.client.get('/history/', queryParameters: {
         if (folderId != null) 'folder_id': folderId,
         if (search != null && search.isNotEmpty) 'search': search,
       });
-      
+
       return (response.data as List)
           .map((item) => HistoryItem.fromJson(item))
           .toList();
     } catch (e) {
-      return []; 
+      return [];
     }
+  }
+
+  Future<HistoryItem> getHistoryDetail(int id) async {
+    final response = await _apiService.client.get('/history/$id');
+    return HistoryItem.fromJson(response.data);
   }
 
   Future<Map<String, dynamic>> getDashboardStats() async {
     try {
-      final response = await _apiService.client.get('/history/dashboard-stats');
-      return response.data;
+      final response = await _apiService.client.get('/history/stats/summary');
+      return response.data as Map<String, dynamic>;
     } catch (e) {
-      return {"total": 0, "avg_accuracy": 0.0, "today_count": 0};
+      debugPrint("Repo Stats Error: $e");
+      return {};
     }
   }
 
   Future<void> saveHistory(Map<String, dynamic> data) async {
     await _apiService.client.post('/history/', data: data);
   }
-  
+
   Future<void> deleteHistoryItem(int id) async {
     await _apiService.client.delete('/history/$id');
   }

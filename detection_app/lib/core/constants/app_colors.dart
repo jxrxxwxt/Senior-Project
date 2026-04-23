@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFFF37E12); // สีส้ม
+  static const Color primary = Color(0xFFF37E12);
   static const Color primaryDark = Color(0xFFD6690B);
   
-  // *** เพิ่มตัวนี้ (แก้ Error: Member not found: 'primarySoft') ***
   static const Color primarySoft = Color(0xFFFFF3E0); 
 
-  static const Color background = Color(0xFFFAFAFA); // พื้นหลังขาวนวล
+  static const Color background = Color(0xFFFAFAFA);
   static const Color cardBg = Colors.white;
   
-  // *** เพิ่มตัวนี้ (แก้ Error: Member not found: 'border') ***
   static const Color border = Color(0xFFEDF1F7); 
   
   static const Color textDark = Color(0xFF1A2B48);
@@ -25,7 +23,6 @@ class AppColors {
   static const Color specimenColor = Color(0xFFF37E12);
   static const Color pureCultureColor = Color(0xFF8A56AC);
 
-  // สีเฉพาะ Folder
   static const Color purpleIcon = Color(0xFF9C27B0);
   static const Color purpleSoft = Color(0xFFF3E5F5);
 }

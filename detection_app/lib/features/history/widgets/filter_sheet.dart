@@ -12,7 +12,6 @@ class FilterSheet extends StatefulWidget {
 }
 
 class _FilterSheetState extends State<FilterSheet> {
-  // Local State for Filter Selection
   String _date = 'All Time';
   String _gram = 'All Types';
   String _shape = 'All Shapes';
@@ -24,12 +23,11 @@ class _FilterSheetState extends State<FilterSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 34), // เว้นระยะด้านล่างเผื่อขอบจอ
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 34),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children:[
-          // Handle (ขีดด้านบน)
           Center(
             child: Container(
               width: 40, height: 4,
@@ -38,7 +36,6 @@ class _FilterSheetState extends State<FilterSheet> {
           ),
           const SizedBox(height: 20),
           
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children:[
@@ -55,7 +52,6 @@ class _FilterSheetState extends State<FilterSheet> {
           const Text("Refine your search with these filters", style: TextStyle(color: AppColors.textGrey, fontSize: 14)),
           const SizedBox(height: 24),
 
-          // Filters
           _buildCustomDropdown("Date Range", _date,['All Time', 'Today', 'This Week', 'This Month'], (val) => setState(() => _date = val)),
           const SizedBox(height: 16),
           _buildCustomDropdown("Gram Type", _gram, ['All Types', 'Gram-positive', 'Gram-negative', 'Yeast'], (val) => setState(() => _gram = val)),
@@ -64,11 +60,9 @@ class _FilterSheetState extends State<FilterSheet> {
 
           const SizedBox(height: 32),
 
-          // Buttons
           Row(
             children:[
               Expanded(
-                // ★ บังคับความสูงให้เท่า CustomButton
                 child: SizedBox(
                   height: 56, 
                   child: OutlinedButton(
@@ -78,7 +72,7 @@ class _FilterSheetState extends State<FilterSheet> {
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.border, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // ★ บังคับขอบมนให้เท่ากัน
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
                       foregroundColor: AppColors.textDark,
                       elevation: 0,
                     ),
@@ -88,7 +82,6 @@ class _FilterSheetState extends State<FilterSheet> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                // ★ บังคับความสูงให้เท่ากับ Reset
                 child: SizedBox(
                   height: 56,
                   child: CustomButton(
@@ -116,7 +109,7 @@ class _FilterSheetState extends State<FilterSheet> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFF7F9FC), // สี Apple Grey
+            color: const Color(0xFFF7F9FC), 
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonHideUnderline(

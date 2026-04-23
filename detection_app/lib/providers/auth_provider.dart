@@ -17,17 +17,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ฟังก์ชันสมัครสมาชิกใหม่
   Future<void> register(String username, String email, String department, String password) async {
     try {
-      // 1. เรียกใช้ Repository (ส่งให้ครบ 4 ค่าตามที่ Repository ต้องการ)
       await _repository.register(username, email, department, password);
-      
-      // 2. หลังจากสมัครสำเร็จ อาจจะทำการ Login ให้เลย หรือให้ผู้ใช้ไป Login เอง
-      // ในที่นี้เราแค่แจ้งเตือน UI ว่าทำงานเสร็จแล้ว
       notifyListeners();
     } catch (e) {
-      // ส่ง Error กลับไปให้หน้า UI แสดง SnackBar หรือ Alert
       rethrow; 
     }
   }

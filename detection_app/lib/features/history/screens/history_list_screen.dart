@@ -37,7 +37,6 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
 
-    // 1. Guest Mode View
     if (auth.isGuest) {
       return Scaffold(
         backgroundColor: const Color(0xFFFAFAFA),
@@ -123,7 +122,6 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
       );
     }
 
-    // 2. Member Mode View
     return Consumer<HistoryProvider>(
       builder: (context, provider, _) {
         final totalSelected =
@@ -186,14 +184,11 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                   children: [
                     Expanded(
                       child: SizedBox(
-                        // 1. เปลี่ยน Container เป็น SizedBox
                         height: 48,
-                        // ลบ decoration ของ Container ออกไปเลย
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => provider.setSearchQuery(v),
                           decoration: InputDecoration(
-                            // 2. เอาคำว่า const ออก
                             hintText: "Search name, folder or note...",
                             hintStyle: const TextStyle(
                                 color: AppColors.textGrey, fontSize: 14),
@@ -202,11 +197,9 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
                             contentPadding:
                                 const EdgeInsets.symmetric(vertical: 12),
 
-                            // 3. ใส่สีพื้นหลังตรงนี้
                             filled: true,
                             fillColor: const Color(0xFFF7F9FC),
 
-                            // 4. บังคับขอบมนในทุกสถานะ (ปกติ, ตอนกด, ตอนใช้งานอยู่)
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -523,7 +516,6 @@ class _HistoryListScreenState extends State<HistoryListScreen> {
     int totalSelected =
         provider.selectedIds.length + provider.selectedFolderIds.length;
 
-    // เรียกใช้ Dialog จากไฟล์ utils ที่มีธีมสวยงามตรงปก
     DialogUtils.showConfirmDialog(
       context,
       title: "Delete Items?",

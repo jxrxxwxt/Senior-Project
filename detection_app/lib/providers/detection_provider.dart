@@ -14,7 +14,6 @@ class DetectionProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   AnalysisResult? get currentResult => _currentResult;
 
-  /// ส่งรูปภาพไปวิเคราะห์ที่ API
   Future<bool> analyzeImage(File image, String modelType) async {
     _isLoading = true;
     _errorMessage = null;
@@ -24,16 +23,15 @@ class DetectionProvider extends ChangeNotifier {
       _currentResult = await _repository.analyzeImage(image, modelType);
       _isLoading = false;
       notifyListeners();
-      return true; // สำเร็จ
+      return true; 
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      return false; // ล้มเหลว
+      return false; 
     }
   }
 
-  /// ล้างค่าเมื่อออกจากหน้า Result
   void clearResult() {
     _currentResult = null;
     _errorMessage = null;

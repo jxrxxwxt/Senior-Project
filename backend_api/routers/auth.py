@@ -5,12 +5,11 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from database import get_db, User
 from schemas.models import UserCreate, UserLogin, Token
-import bcrypt # เพิ่ม import ตัวนี้ไว้ด้านบนสุด
+import bcrypt
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# Configuration
-SECRET_KEY = "YOUR_SECRET_KEY_HERE" # เปลี่ยนเป็น key ยากๆ ใน production
+SECRET_KEY = "YOUR_SECRET_KEY_HERE"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
@@ -22,11 +21,9 @@ def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(password_byte, hashed_byte)
 
 def get_password_hash(password: str):
-    # เปลี่ยน string เป็น bytes ก่อน hash
     pwd_bytes = password.encode('utf-8')
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(pwd_bytes, salt)
-    # คืนค่ากลับไปเป็น string เพื่อเก็บในฐานข้อมูล
     return hashed_password.decode('utf-8')
 
 def create_access_token(data: dict):
@@ -36,11 +33,8 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# --- Endpoints ---
-
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if user exists
     existing_user = db.query(User).filter(User.username == user.username).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already exists")
@@ -68,10 +62,9 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
         "access_token": access_token, 
         "token_type": "bearer", 
         "username": user.username,
-        "department": user.department  # ← เพิ่มตรงนี้
+        "department": user.department 
     }
 
-# Helper Function สำหรับ Router อื่นๆ เพื่อดึง User ปัจจุบัน
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

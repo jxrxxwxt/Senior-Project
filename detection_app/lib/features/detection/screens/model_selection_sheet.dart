@@ -12,7 +12,7 @@ class ModelSelectionSheet extends StatelessWidget {
     final XFile? photo = await picker.pickImage(source: source);
     
     if (photo != null && context.mounted) {
-      Navigator.pop(context); // Close BottomSheet
+      Navigator.pop(context);
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -79,26 +79,24 @@ class ModelSelectionSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              // Button 1: Camera
               Expanded(
                 child: _actionButton(
                   context: context,
                   label: "Take Photo",
                   icon: Icons.camera_alt_rounded,
                   color: color,
-                  isPrimary: false, // Outlined look
+                  isPrimary: false,
                   onPressed: () => _pickImage(context, modelName, ImageSource.camera),
                 ),
               ),
               const SizedBox(width: 12),
-              // Button 2: Gallery
               Expanded(
                 child: _actionButton(
                   context: context,
                   label: "Gallery",
                   icon: Icons.photo_library_rounded,
                   color: color,
-                  isPrimary: true, // Filled look
+                  isPrimary: true, 
                   onPressed: () => _pickImage(context, modelName, ImageSource.gallery),
                 ),
               ),

@@ -4,8 +4,8 @@ class AnalysisResult {
   final String shape;
   final double accuracy;
   final DateTime timestamp;
-  final String originalImageBase64;  // รูปปกติ
-  final String annotatedImageBase64; // รูป+bounding box
+  final String originalImageBase64;
+  final String annotatedImageBase64;
 
   AnalysisResult({
     required this.modelUsed,

@@ -56,7 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (mounted) {
           DialogUtils.showSuccess(context, "Account created! Please sign in.");
           
-          // delay ให้ user เห็น notification ก่อน pop กลับ
           await Future.delayed(const Duration(milliseconds: 800));
           if (mounted) Navigator.pop(context);
         }
@@ -72,7 +71,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // ใช้ GestureDetector เพื่อปิด Dropdown เวลาจิ้มที่อื่น
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
@@ -118,7 +116,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
         
                   _buildLabel("Department"),
-                  // ★ ใช้ Custom Dropdown ที่สร้างขึ้นเองด้านล่าง
                   _CustomDropdown(
                     items: _departments,
                     value: _department,
@@ -213,9 +210,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// ★ Custom Dropdown Widget (สร้างขึ้นใหม่เพื่อให้ได้ UI ตามที่ขอ)
-// ---------------------------------------------------------------------------
 class _CustomDropdown extends StatefulWidget {
   final List<String> items;
   final String? value;
@@ -247,14 +241,12 @@ class _CustomDropdownState extends State<_CustomDropdown> {
   }
 
   void _showDropdown() {
-    // 1. หาตำแหน่งและขนาดของปุ่มกด
     final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
 
     _overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // พื้นหลังใส กดแล้วปิด Dropdown
           Positioned.fill(
             child: GestureDetector(
               onTap: _closeDropdown,
@@ -262,13 +254,12 @@ class _CustomDropdownState extends State<_CustomDropdown> {
               child: Container(color: Colors.transparent),
             ),
           ),
-          // ตัว Dropdown Menu
           Positioned(
-            width: size.width, // ความกว้างเท่ากับปุ่มเป๊ะๆ
+            width: size.width, 
             child: CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              // ★ offset (0, height + 8) คือเว้นช่องไฟ 8px จากด้านล่างปุ่ม
+
               offset: Offset(0, size.height + 8), 
               child: Material(
                 elevation: 4,
@@ -276,7 +267,7 @@ class _CustomDropdownState extends State<_CustomDropdown> {
                 borderRadius: BorderRadius.circular(12),
                 shadowColor: Colors.black.withValues(alpha: 0.1),
                 child: Container(
-                  constraints: const BoxConstraints(maxHeight: 250), // จำกัดความสูง
+                  constraints: const BoxConstraints(maxHeight: 250),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -297,7 +288,7 @@ class _CustomDropdownState extends State<_CustomDropdown> {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          color: isSelected ? const Color(0xFFF7F9FC) : Colors.white, // Highlight สีเทาอ่อน
+                          color: isSelected ? const Color(0xFFF7F9FC) : Colors.white,
                           child: Text(
                             item,
                             style: TextStyle(
@@ -346,7 +337,7 @@ class _CustomDropdownState extends State<_CustomDropdown> {
             color: const Color(0xFFF7F9FC), // สีพื้นหลังเทาอ่อน
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isOpen ? AppColors.primary : const Color(0xFFEDF1F7), // เปลี่ยนสีขอบเมื่อเปิด
+              color: _isOpen ? AppColors.primary : const Color(0xFFEDF1F7),
             ),
           ),
           child: Row(

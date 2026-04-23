@@ -41,10 +41,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
   void _startAnalysis() async {
     try {
-      // 1. นำรูปภาพต้นฉบับมาลดขนาดและบีบอัดก่อนส่ง
       File compressedImage = await _compressAndResizeImage(widget.imageFile);
 
-      // 2. ส่งรูปที่ถูกย่อแล้ว (compressedImage) ไปที่ Repository แทน
       final repo = DetectionRepository();
       final result = await repo.analyzeImage(compressedImage, widget.modelName);
       
@@ -64,11 +62,10 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  // --- ฟังก์ชัน Helper สำหรับย่อขนาดรูปภาพ ---
   Future<File> _compressAndResizeImage(File file) async {
     try {
       final originalSize = await file.length();
-      debugPrint('➡️ Original size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      debugPrint('>>> Original size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
 
       final tempDir = await getTemporaryDirectory();
       final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -84,7 +81,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
       if (result != null) {
         final compressedSize = await result.length();
-        debugPrint('✅ Compressed size: ${(compressedSize / 1024).toStringAsFixed(2)} KB');
+        debugPrint('>>> Compressed size: ${(compressedSize / 1024).toStringAsFixed(2)} KB');
         return File(result.path);
       }
       return file;
@@ -107,8 +104,6 @@ class _ResultScreenState extends State<ResultScreen> {
       return;
     }
 
-    // เปิด Pop-up แบบ Apple Style เพื่อเลือกโฟลเดอร์
-    // คืนค่ากลับมาเป็น int? (Folder ID)
     final selectedFolderId = await showModalBottomSheet<int?>(
       context: context,
       isScrollControlled: true, 
@@ -119,9 +114,6 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
     );
 
-    // ทำการบันทึกถ้ามีการเลือกโฟลเดอร์หรือเลือก No Folder (null)
-    // หมายเหตุ: กรณีที่ User กดปิด BottomSheet ไปเฉยๆ selectedFolderId จะเป็น null ด้วย
-    // เพื่อความลื่นไหล เราจะอนุญาตให้เซฟลง General (null) ได้เลย
     if (mounted) {
       _saveToApi(selectedFolderId);
     }
@@ -148,10 +140,9 @@ class _ResultScreenState extends State<ResultScreen> {
       await Provider.of<HistoryProvider>(context, listen: false).addHistoryItem(data);
 
       if (mounted) {
-        DialogUtils.hideLoading(context); // ปิด Loading
-        DialogUtils.showSuccess(context, "Saved Successfully!"); // โชว์ Toast ด้านบน
+        DialogUtils.hideLoading(context); 
+        DialogUtils.showSuccess(context, "Saved Successfully!");
 
-        // กลับหน้าแรก
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const DashboardScreen()),
@@ -220,11 +211,9 @@ class _ResultScreenState extends State<ResultScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // --- Before & After Images ---
                       _buildBeforeAfterSection(),
                       const SizedBox(height: 24),
 
-                      // --- Item Name Input ---
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -241,7 +230,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                 hintStyle: const TextStyle(
                                     color: AppColors.textGrey, fontSize: 14),
                                 fillColor:
-                                    const Color(0xFFF7F9FC), // สี Apple Input
+                                    const Color(0xFFF7F9FC),
                                 filled: true,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -251,7 +240,6 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // --- Info Card ---
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -292,7 +280,6 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // --- Note Input ---
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -321,7 +308,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
                       const SizedBox(height: 32),
 
-                      // --- Save Button ---
                       if (isGuest)
                         Container(
                           width: double.infinity,
@@ -379,7 +365,7 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
     );
   }
-  // --- Helper Widget ---
+
   Widget _buildBeforeAfterSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +381,6 @@ class _ResultScreenState extends State<ResultScreen> {
         const SizedBox(height: 12),
         Row(
           children: [
-            // --- BEFORE ---
             Expanded(
               child: _analysisResult != null
                   ? _buildImageCard(
@@ -414,7 +399,6 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
             ),
             const SizedBox(width: 12),
-            // --- AFTER ---
             Expanded(
               child: _analysisResult != null
                   ? _buildImageCard(
@@ -493,7 +477,6 @@ class _ResultScreenState extends State<ResultScreen> {
                   ],
                 ),
               ),
-              // Overlay gradient + Icon
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),

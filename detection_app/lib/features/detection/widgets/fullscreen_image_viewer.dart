@@ -30,7 +30,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
     DialogUtils.showLoading(context);
 
     try {
-      // ขออนุญาต
       final status = await Permission.photos.request();
 
       if (status.isDenied) {
@@ -52,10 +51,8 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         return;
       }
 
-      // แปลง base64 -> bytes
       final bytes = base64Decode(widget.imageBase64);
 
-      // บันทึกโดยใช้ gal package
       await Gal.putImageBytes(
         bytes,
         name: "bacteria_${DateTime.now().millisecondsSinceEpoch}.png",
@@ -77,7 +74,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
 
   @override
   Widget build(BuildContext context) {
-    // แปลง base64 -> Image widget
     final imageBytes = base64Decode(widget.imageBase64);
 
     return Scaffold(
@@ -105,7 +101,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
               ),
             ),
           ),
-          // ปุ่มบันทึก
           Container(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton.icon(

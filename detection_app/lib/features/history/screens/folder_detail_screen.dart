@@ -8,7 +8,7 @@ import '../../../providers/history_provider.dart';
 import 'history_detail_screen.dart';
 
 class FolderDetailScreen extends StatefulWidget {
-  final int? folderId; // ★ ใช้ ID ในการอ้างอิง
+  final int? folderId;
   final String folderName;
 
   const FolderDetailScreen(
@@ -24,7 +24,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Reset ค้นหาเมื่อเข้าหน้าใหม่ เพื่อให้เห็นรายการทั้งหมดในโฟลเดอร์ก่อน
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<HistoryProvider>(context, listen: false).setSearchQuery("");
     });
@@ -34,7 +33,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
   Widget build(BuildContext context) {
     return Consumer<HistoryProvider>(
       builder: (context, provider, _) {
-        // ★ กรองรายการจาก Provider โดยใช้ Folder ID
         final displayItems = provider.items.where((item) {
           return item.folderId == widget.folderId;
         }).toList();
@@ -54,8 +52,7 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                 style: const TextStyle(
                     color: AppColors.textDark,
                     fontWeight: FontWeight.bold,
-                    fontSize: 24 // ★ Font ใหญ่สะใจตาม Ref
-                    )),
+                    fontSize: 24)),
             actions: [
               TextButton.icon(
                 onPressed: () => provider.toggleSelectionMode(),
@@ -81,23 +78,17 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // -------------------------------------------------------
-              // 1. Search Bar & Filter Button
-              // -------------------------------------------------------
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Row(
                   children: [
                     Expanded(
                       child: SizedBox(
-                        // 1. เปลี่ยน Container เป็น SizedBox
                         height: 48,
-                        // ลบ decoration ของ Container ออกไปเลย
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => provider.setSearchQuery(v),
                           decoration: InputDecoration(
-                            // 2. เอาคำว่า const ออก
                             hintText: "Search name or note...",
                             hintStyle: const TextStyle(
                                 color: AppColors.textGrey, fontSize: 14),
@@ -106,11 +97,9 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                             contentPadding:
                                 const EdgeInsets.symmetric(vertical: 12),
 
-                            // 3. ใส่สีพื้นหลังตรงนี้
                             filled: true,
                             fillColor: const Color(0xFFF7F9FC),
 
-                            // 4. บังคับขอบมนในทุกสถานะ (ปกติ, ตอนกด, ตอนใช้งานอยู่)
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -153,9 +142,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                 ),
               ),
 
-              // -------------------------------------------------------
-              // 2. Breadcrumbs (All Items > Folder Name)
-              // -------------------------------------------------------
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -190,9 +176,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                 ),
               ),
 
-              // -------------------------------------------------------
-              // 3. Section Header & Delete Selected
-              // -------------------------------------------------------
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
@@ -219,9 +202,6 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                 ),
               ),
 
-              // -------------------------------------------------------
-              // 4. List Items
-              // -------------------------------------------------------
               Expanded(
                 child: displayItems.isEmpty
                     ? const Center(

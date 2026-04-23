@@ -8,8 +8,8 @@ class HistoryItem {
   final double accuracy;
   final String? note;
   final int? folderId;
-  final String originalImageBase64;
-  final String annotatedImageBase64;
+  final String? originalImageBase64;
+  final String? annotatedImageBase64;
 
   HistoryItem({
     required this.id,

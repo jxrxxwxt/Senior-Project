@@ -1,50 +1,55 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session, defer
 from typing import List, Optional
 from datetime import datetime, timedelta
 from database import get_db, History, User, Folder
-from schemas.models import HistoryCreate, HistoryResponse, FolderCreate, FolderResponse
+from schemas.models import (
+    HistoryCreate,
+    HistoryResponse,
+    FolderCreate,
+    FolderResponse,
+    HistoryListResponse,
+)
 from routers.auth import get_current_user
 
 router = APIRouter(prefix="/history", tags=["History"])
-
-# -----------------------------------------------------------------------------
-# 📂 FOLDER ENDPOINTS
-# -----------------------------------------------------------------------------
 
 @router.get("/folders", response_model=List[FolderResponse])
 def get_folders(
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     query = db.query(Folder).filter(Folder.user_id == current_user.id)
-    
+
     if search:
         query = query.filter(Folder.name.ilike(f"%{search}%"))
-        
+
     folders = query.order_by(Folder.name.asc()).all()
-    
-    # นับจำนวนไอเท็มที่อยู่ในแต่ละโฟลเดอร์
+
     for f in folders:
         f.item_count = len(f.items)
-        
+
     return folders
 
-@router.post("/folders", response_model=FolderResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/folders", response_model=FolderResponse, status_code=status.HTTP_201_CREATED
+)
 def create_folder(
     folder: FolderCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    # ป้องกันการสร้างชื่อโฟลเดอร์ซ้ำ
-    existing = db.query(Folder).filter(
-        Folder.user_id == current_user.id, 
-        Folder.name == folder.name
-    ).first()
+    
+    existing = (
+        db.query(Folder)
+        .filter(Folder.user_id == current_user.id, Folder.name == folder.name)
+        .first()
+    )
     if existing:
         raise HTTPException(status_code=400, detail="Folder name already exists")
-        
+
     new_folder = Folder(name=folder.name, user_id=current_user.id)
     db.add(new_folder)
     db.commit()
@@ -55,26 +60,22 @@ def create_folder(
 def delete_folder(
     folder_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    folder = db.query(Folder).filter(
-        Folder.id == folder_id, 
-        Folder.user_id == current_user.id
-    ).first()
-    
+    folder = (
+        db.query(Folder)
+        .filter(Folder.id == folder_id, Folder.user_id == current_user.id)
+        .first()
+    )
+
     if not folder:
         raise HTTPException(status_code=404, detail="Folder not found")
-        
+
     db.delete(folder)
     db.commit()
     return {"message": "Folder deleted successfully"}
 
-
-# -----------------------------------------------------------------------------
-# 📄 HISTORY ITEM ENDPOINTS
-# -----------------------------------------------------------------------------
-
-@router.get("/", response_model=List[HistoryResponse])
+@router.get("/", response_model=List[HistoryListResponse])
 def get_all_history(
     folder_id: Optional[int] = None,
     gram_type: Optional[str] = None,
@@ -82,23 +83,19 @@ def get_all_history(
     date_range: Optional[str] = None,
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     query = db.query(History).filter(History.user_id == current_user.id)
-    
-    # 1. Filter by Folder ID
+
     if folder_id is not None:
         query = query.filter(History.folder_id == folder_id)
 
-    # 2. Filter by Gram Type
     if gram_type and gram_type != "All Types":
         query = query.filter(History.gram_type == gram_type)
 
-    # 3. Filter by Shape
     if shape and shape != "All Shapes":
         query = query.filter(History.shape == shape)
 
-    # 4. Filter by Date Range
     if date_range and date_range != "All Time":
         now = datetime.now()
         if date_range == "Today":
@@ -111,98 +108,114 @@ def get_all_history(
             start_date = now - timedelta(days=30)
             query = query.filter(History.timestamp >= start_date)
 
-    # 5. Search (ชื่อรายการ, Note, และ ชื่อโฟลเดอร์)
     if search:
         search_term = f"%{search}%"
         query = query.outerjoin(Folder).filter(
-            (History.item_name.ilike(search_term)) | 
-            (History.note.ilike(search_term)) |
-            (Folder.name.ilike(search_term))
+            (History.item_name.ilike(search_term))
+            | (History.note.ilike(search_term))
+            | (Folder.name.ilike(search_term))
         )
+
+    query = query.options(
+        defer(History.original_image_base64), defer(History.annotated_image_base64)
+    )
 
     return query.order_by(History.timestamp.desc()).all()
 
+
+@router.get("/stats/summary")
+def get_dashboard_stats(
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    stats = (
+        db.query(
+            func.count(History.id).label("total"),
+            func.avg(History.accuracy).label("avg_acc"),
+        )
+        .filter(History.user_id == current_user.id)
+        .first()
+    )
+
+    today = datetime.now().date()
+    today_count = (
+        db.query(func.count(History.id))
+        .filter(
+            History.user_id == current_user.id, 
+            func.date(History.timestamp) == today
+        )
+        .scalar() or 0
+    )
+
+    user_department = current_user.department
+    department_count = (
+        db.query(func.count(History.id))
+        .join(User) 
+        .filter(User.department == user_department)
+        .scalar() or 0
+    )
+
+    return {
+        "total": stats.total or 0,
+        "avg_accuracy": round(stats.avg_acc or 0.0, 1),
+        "today_count": today_count,
+        "department_count": department_count,
+    }
+
+@router.get("/{item_id}", response_model=HistoryResponse)
+def get_history_detail(
+    item_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    item = (
+        db.query(History)
+        .filter(History.id == item_id, History.user_id == current_user.id)
+        .first()
+    )
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
 
 @router.post("/", response_model=HistoryResponse)
 def create_history_item(
     item: HistoryCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    db_history = History(
-        **item.dict(),
-        user_id=current_user.id
-    )
+    db_history = History(**item.dict(), user_id=current_user.id)
     db.add(db_history)
     db.commit()
     db.refresh(db_history)
     return db_history
 
-
 @router.delete("/{item_id}")
 def delete_history_item(
     item_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    item = db.query(History).filter(History.id == item_id, History.user_id == current_user.id).first()
+    item = (
+        db.query(History)
+        .filter(History.id == item_id, History.user_id == current_user.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     db.delete(item)
     db.commit()
     return {"message": "Item deleted"}
-
 
 @router.delete("/batch/delete")
 def delete_multiple_items(
     item_ids: List[int] = Query(...),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     db.query(History).filter(
-        History.id.in_(item_ids), 
-        History.user_id == current_user.id
+        History.id.in_(item_ids), History.user_id == current_user.id
     ).delete(synchronize_session=False)
-    
+
     db.commit()
     return {"message": "Items deleted"}
-
-
-# -----------------------------------------------------------------------------
-# 📊 DASHBOARD STATS
-# -----------------------------------------------------------------------------
-
-@router.get("/dashboard-stats")
-def get_dashboard_stats(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    # ดึงรายการทั้งหมดของผู้ใช้คนนี้
-    user_history = db.query(History).filter(History.user_id == current_user.id).all()
-    
-    total = len(user_history)
-    if total == 0:
-        return {"total": 0, "avg_accuracy": 0, "today_count": 0, "department_count": 0}
-
-    total_acc = sum([h.accuracy for h in user_history])
-    avg_acc = total_acc / total
-
-    today = datetime.now().date()
-    today_count = sum([1 for h in user_history if h.timestamp.date() == today])
-
-    # ★ เพิ่ม: นับจำนวนการวิเคราะห์ของแผนกนี้
-    user_department = current_user.department
-    department_query = db.query(History).filter(
-        History.user_id.in_(
-            db.query(User.id).filter(User.department == user_department)
-        )
-    ).all()
-    department_count = len(department_query)
-
-    return {
-        "total": total,
-        "avg_accuracy": round(avg_acc, 1),
-        "today_count": today_count,
-        "department_count": department_count
-    }

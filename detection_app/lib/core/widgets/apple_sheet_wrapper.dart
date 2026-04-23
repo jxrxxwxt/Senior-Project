@@ -15,7 +15,6 @@ class AppleSheetWrapper extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 12),
-          // Handle Bar (ขีดเทาๆ ด้านบน)
           Container(
             width: 40,
             height: 4,
@@ -25,8 +24,8 @@ class AppleSheetWrapper extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          child, // เนื้อหาข้างใน
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 16), // เว้นระยะ Safe Area
+          child,
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
       ),
     );
