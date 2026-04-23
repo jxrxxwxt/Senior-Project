@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +13,12 @@ import '../../../providers/history_provider.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../widgets/save_folder_sheet.dart';
 import '../widgets/fullscreen_image_viewer.dart'; 
+import '../../../data/repositories/detection_repository.dart';
 
 class ResultScreen extends StatefulWidget {
-  final AnalysisResult result;
   final File imageFile;
-  const ResultScreen({super.key, required this.result, required this.imageFile});
+  final String modelName;
+  const ResultScreen({super.key, required this.imageFile, required this.modelName});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -25,8 +27,38 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> {
   final _nameCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
+  AnalysisResult? _analysisResult;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAnalysis();
+  }
+
+  void _startAnalysis() async {
+    try {
+      final repo = DetectionRepository();
+      final result = await repo.analyzeImage(widget.imageFile, widget.modelName);
+      if (mounted) {
+        setState(() {
+          _analysisResult = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   void _onSavePressed() async {
+    if (_analysisResult == null) return;
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.isGuest) {
       DialogUtils.showError(context, "Please login to save your analysis results.");
@@ -59,19 +91,21 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _saveToApi(int? folderId) async {
+    if (_analysisResult == null) return;
     DialogUtils.showLoading(context);
 
     try {
+      final result = _analysisResult!;
       final data = {
         "item_name": _nameCtrl.text.trim(),
-        "model_used": widget.result.modelUsed,
-        "gram_type": widget.result.gramType,
-        "shape": widget.result.shape,
-        "accuracy": widget.result.accuracy,
+        "model_used": result.modelUsed,
+        "gram_type": result.gramType,
+        "shape": result.shape,
+        "accuracy": result.accuracy,
         "note": _noteCtrl.text.trim(),
         "folder_id": folderId,
-        "original_image_base64": widget.result.originalImageBase64,
-        "annotated_image_base64": widget.result.annotatedImageBase64,
+        "original_image_base64": result.originalImageBase64,
+        "annotated_image_base64": result.annotatedImageBase64,
       };
 
       await Provider.of<HistoryProvider>(context, listen: false).addHistoryItem(data);
@@ -101,114 +135,213 @@ class _ResultScreenState extends State<ResultScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Analysis Results", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Analysis Results",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children:[
-            // --- Before & After Images ---
-            _buildBeforeAfterSection(),
-            const SizedBox(height: 24),
-
-            // --- Item Name Input ---
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                const Text("Item Name *", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 13)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _nameCtrl,
-                  decoration: InputDecoration(
-                    hintText: "Enter analysis name",
-                    hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 14),
-                    fillColor: const Color(0xFFF7F9FC), // สี Apple Input
-                    filled: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  )
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // --- Info Card ---
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: Colors.white, 
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFEDF1F7)),
-                  boxShadow:[
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
-                  ]
-              ),
-              child: Column(
-                children:[
-                  _infoRow("Timestamp", DateFormat('EEEE, MMM d, yyyy \nAT h:mm a').format(widget.result.timestamp)),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(height: 1, color: Color(0xFFEDF1F7)),
+      body: Stack(
+        children: [
+          _errorMessage != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            color: Colors.red, size: 60),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Analysis Failed",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.textGrey),
+                        ),
+                        const SizedBox(height: 24),
+                        CustomButton(
+                          text: "Try Again",
+                          onPressed: () {
+                            setState(() {
+                              _isLoading = true;
+                              _errorMessage = null;
+                            });
+                            _startAnalysis();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  _infoRow("Accuracy", "${widget.result.accuracy.toStringAsFixed(1)}%", isHighlight: true),
-                  _infoRow("Gram Type", widget.result.gramType),
-                  _infoRow("Shape", widget.result.shape),
-                ],
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // --- Before & After Images ---
+                      _buildBeforeAfterSection(),
+                      const SizedBox(height: 24),
+
+                      // --- Item Name Input ---
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Item Name *",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                  fontSize: 13)),
+                          const SizedBox(height: 8),
+                          TextField(
+                              controller: _nameCtrl,
+                              decoration: InputDecoration(
+                                hintText: "Enter analysis name",
+                                hintStyle: const TextStyle(
+                                    color: AppColors.textGrey, fontSize: 14),
+                                fillColor:
+                                    const Color(0xFFF7F9FC), // สี Apple Input
+                                filled: true,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none),
+                              )),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- Info Card ---
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFEDF1F7)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4))
+                            ]),
+                        child: Column(
+                          children: [
+                            _infoRow(
+                                "Timestamp",
+                                _analysisResult != null
+                                    ? DateFormat('EEEE, MMM d, yyyy \nAT h:mm a')
+                                        .format(_analysisResult!.timestamp)
+                                    : "Predicting..."),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child:
+                                  Divider(height: 1, color: Color(0xFFEDF1F7)),
+                            ),
+                            _infoRow(
+                                "Accuracy",
+                                _analysisResult != null
+                                    ? "${_analysisResult!.accuracy.toStringAsFixed(1)}%"
+                                    : "--%",
+                                isHighlight: true),
+                            _infoRow("Gram Type",
+                                _analysisResult?.gramType ?? "Scanning..."),
+                            _infoRow("Shape",
+                                _analysisResult?.shape ?? "Scanning..."),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- Note Input ---
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Label Note (Optional)",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                  fontSize: 13)),
+                          const SizedBox(height: 8),
+                          TextField(
+                              controller: _noteCtrl,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                hintText: "Add any observations...",
+                                hintStyle: const TextStyle(
+                                    color: AppColors.textGrey, fontSize: 14),
+                                fillColor: const Color(0xFFF7F9FC),
+                                filled: true,
+                                alignLabelWithHint: true,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none),
+                              )),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // --- Save Button ---
+                      if (isGuest)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Colors.orange.withValues(alpha: 0.3))),
+                          child: const Center(
+                              child: Text("Sign in to save results to history",
+                                  style: TextStyle(
+                                      color: AppColors.primaryDark,
+                                      fontWeight: FontWeight.bold))),
+                        )
+                      else
+                        CustomButton(
+                          text: "Save to History",
+                          onPressed: _onSavePressed,
+                        ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+          if (_isLoading)
+            Positioned.fill(
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Container(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                              color: AppColors.primary),
+                          SizedBox(height: 16),
+                          Text(
+                            "Analyzing image...",
+                            style: TextStyle(
+                                color: AppColors.textDark,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // --- Note Input ---
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                const Text("Label Note (Optional)", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 13)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _noteCtrl,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: "Add any observations...",
-                    hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 14),
-                    fillColor: const Color(0xFFF7F9FC),
-                    filled: true,
-                    alignLabelWithHint: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  )
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // --- Save Button ---
-            if (isGuest)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3))),
-                child: const Center(
-                  child: Text("Sign in to save results to history", style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold))
-                ),
-              )
-            else
-              CustomButton(
-                text: "Save to History",
-                onPressed: _onSavePressed,
-              ),
-
-            const SizedBox(height: 40),
-          ],
-        ),
+        ],
       ),
     );
   }
-
   // --- Helper Widget ---
   Widget _buildBeforeAfterSection() {
     return Column(
@@ -227,20 +360,58 @@ class _ResultScreenState extends State<ResultScreen> {
           children: [
             // --- BEFORE ---
             Expanded(
-              child: _buildImageCard(
-                label: "Before",
-                imageBase64: widget.result.originalImageBase64,
-                isAnnotated: false,
-              ),
+              child: _analysisResult != null
+                  ? _buildImageCard(
+                      label: "Before",
+                      imageBase64: _analysisResult!.originalImageBase64,
+                      isAnnotated: false,
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        widget.imageFile,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
             ),
             const SizedBox(width: 12),
             // --- AFTER ---
             Expanded(
-              child: _buildImageCard(
-                label: "After (with Bounding Box)",
-                imageBase64: widget.result.annotatedImageBase64,
-                isAnnotated: true,
-              ),
+              child: _analysisResult != null
+                  ? _buildImageCard(
+                      label: "After (with Bounding Box)",
+                      imageBase64: _analysisResult!.annotatedImageBase64,
+                      isAnnotated: true,
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        children:[
+                          Image.file(
+                            widget.imageFile,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          Container(
+                            height: 180,
+                            color: Colors.black.withValues(alpha: 0.1),
+                            child: const Center(
+                              child: Text(
+                                "Processing...",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
