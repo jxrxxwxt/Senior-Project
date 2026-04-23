@@ -5,15 +5,18 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageOps
 import io
 import base64
-from typing import List
+from typing import List, Counter
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
 
 LABEL_MAP = {
     "poscoc": ("Gram-positive", "Cocci"),
+    
     "posbasi": ("Gram-positive", "Bacilli"),
     "posbaci": ("Gram-positive", "Bacilli"),
+    
     "negcoc": ("Gram-negative", "Cocci"),
+    
     "negbasi": ("Gram-negative", "Bacilli"),
     "negbaci": ("Gram-negative", "Bacilli")
 }
@@ -98,11 +101,21 @@ async def analyze_image(
     result = results[0]
     boxes = result.boxes
     
+    # ดึงค่า Confidence และ Class ID ของกล่องทั้งหมด
+    all_confs = boxes.conf.cpu().numpy()
+    all_cls_ids = boxes.cls.cpu().numpy().astype(int)
+
+    # กองข้อมูลเพื่อนับว่า Class ไหนเยอะที่สุด (Majority Vote)
+    # เราเลือกตัวที่พบมากที่สุดมาเป็นคำตอบของรูป
+    class_counts = Counter(all_cls_ids)
+    majority_cls_id = class_counts.most_common(1)[0][0]
+    
+    # หาค่า Accuracy สูงสุด (จากตัวที่มั่นใจที่สุด) เพื่อแสดงผลความชัดเจนของภาพ
     best_box_idx = boxes.conf.argmax()
-    cls_id = int(boxes.cls[best_box_idx])
     accuracy = float(boxes.conf[best_box_idx]) * 100
 
-    detected_class_name = model.names[cls_id]
+    # ดึงชื่อ Class จากผลโหวตข้างมาก
+    detected_class_name = model.names[majority_cls_id]
     gram_type, shape = LABEL_MAP.get(detected_class_name, (f"Unknown ({detected_class_name})", "Unknown"))
 
     annotated_image = _draw_bounding_boxes(original_image, boxes, boxes.cls, model)
