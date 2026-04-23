@@ -6,6 +6,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/history_item.dart';
 import '../../../providers/history_provider.dart';
 import 'history_detail_screen.dart';
+import '../../../core/utils/dialog_utils.dart';
+
 
 class FolderDetailScreen extends StatefulWidget {
   final int? folderId;
@@ -333,55 +335,16 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
   }
 
   void _showDeleteConfirm(BuildContext context, HistoryProvider provider) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                      color: Color(0xFFFFEBEE), shape: BoxShape.circle),
-                  child: const Icon(Icons.delete_outline_rounded,
-                      color: Colors.red, size: 32)),
-              const SizedBox(height: 16),
-              const Text("Delete Selected?",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark)),
-              const SizedBox(height: 8),
-              const Text("This action cannot be undone.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textGrey)),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                      child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text("Cancel"))),
-                  const SizedBox(width: 12),
-                  Expanded(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            provider.deleteSelected();
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red),
-                          child: const Text("Delete",
-                              style: TextStyle(fontWeight: FontWeight.bold)))),
-                ],
-              )
-            ],
-          ),
-        ),
-      ),
+    int totalSelected =
+        provider.selectedIds.length + provider.selectedFolderIds.length;
+
+    DialogUtils.showConfirmDialog(
+      context,
+      title: "Delete Items?",
+      message:
+          "Are you sure you want to delete $totalSelected items?\nThis action cannot be undone.",
+      confirmText: "Delete",
+      onConfirm: () => provider.deleteSelected(),
     );
   }
 }
