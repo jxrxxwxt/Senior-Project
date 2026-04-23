@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/history_provider.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../detection/screens/model_selection_sheet.dart';
+import '../../history/screens/history_detail_screen.dart';
 import '../../history/screens/history_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -17,7 +18,8 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin {
   int _currentIndex = 0;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
@@ -31,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (!auth.isGuest) {
@@ -54,26 +56,24 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       extendBody: true,
-      
       body: IndexedStack(
         index: _currentIndex > 1 ? 0 : _currentIndex,
-        children:[
+        children: [
           _buildDashboardTab(),
           const HistoryListScreen(),
         ],
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
-        height: 60, width: 60, 
+        height: 60,
+        width: 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow:[
+          boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.4), 
-              blurRadius: 10, 
-              offset: const Offset(0, 4)
-            ),
+                color: AppColors.primary.withValues(alpha: 0.4),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: FloatingActionButton(
@@ -86,9 +86,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             );
           },
           backgroundColor: AppColors.primary,
-          elevation: 0, 
+          elevation: 0,
           shape: const CircleBorder(),
-          child: const Icon(Icons.crop_free_rounded, color: Colors.white, size: 28),
+          child: const Icon(Icons.crop_free_rounded,
+              color: Colors.white, size: 28),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
@@ -98,12 +99,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           height: 70,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children:[
+            children: [
               Expanded(
                 child: _buildTabItem(
-                  icon: Icons.home_outlined, 
-                  activeIcon: Icons.home_rounded, 
-                  label: "Dashboard", 
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: "Dashboard",
                   index: 0,
                   isLocked: isGuest,
                 ),
@@ -112,23 +113,20 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
-                      "Analysis", 
-                      style: TextStyle(
-                        color: AppColors.textDark, 
-                        fontSize: 12, 
-                        fontWeight: FontWeight.bold
-                      )
-                    ),
-                    SizedBox(height: 4), 
+                    Text("Analysis",
+                        style: TextStyle(
+                            color: AppColors.textDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
                   ],
                 ),
               ),
               Expanded(
                 child: _buildTabItem(
-                  icon: Icons.history_outlined, 
-                  activeIcon: Icons.history_rounded, 
-                  label: "History", 
+                  icon: Icons.history_outlined,
+                  activeIcon: Icons.history_rounded,
+                  label: "History",
                   index: 1,
                   isLocked: isGuest,
                 ),
@@ -141,15 +139,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildTabItem({
-    required IconData icon, 
-    required IconData activeIcon, 
-    required String label, 
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
     required int index,
     bool isLocked = false,
   }) {
     final safeCurrentIndex = _currentIndex > 1 ? 0 : _currentIndex;
     final isSelected = safeCurrentIndex == index;
-    final color = isSelected ? Colors.blue : const Color(0xFF8F9BB3); 
+    final color = isSelected ? Colors.blue : const Color(0xFF8F9BB3);
     final displayIcon = isSelected ? activeIcon : icon;
 
     return InkWell(
@@ -162,7 +160,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
-            children:[
+            children: [
               Icon(displayIcon, color: color, size: 26),
               const SizedBox(height: 4),
               Text(
@@ -177,7 +175,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
           if (isLocked)
             Positioned(
-              top: 2, 
+              top: 2,
               right: 20,
               child: Container(
                 padding: const EdgeInsets.all(2),
@@ -185,7 +183,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.lock_rounded, size: 10, color: Colors.grey.shade400),
+                child: Icon(Icons.lock_rounded,
+                    size: 10, color: Colors.grey.shade400),
               ),
             ),
         ],
@@ -195,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   Widget _buildDashboardTab() {
     final auth = Provider.of<AuthProvider>(context);
-    
+
     if (auth.isGuest) {
       return Scaffold(
         backgroundColor: const Color(0xFFFAFAFA),
@@ -208,57 +207,71 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.grey.shade200, shape: BoxShape.circle),
-                      child: const Icon(Icons.lock_outline, size: 20, color: Colors.grey),
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade200, shape: BoxShape.circle),
+                      child: const Icon(Icons.lock_outline,
+                          size: 20, color: Colors.grey),
                     ),
                     const SizedBox(width: 12),
                     const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Guest User", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
-                        Text("Limited Access", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                        Text("Guest User",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.textDark)),
+                        Text("Limited Access",
+                            style: TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
                     )
                   ],
                 ),
               ),
-              
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children:[
+                  children: [
                     Container(
-                      padding: const EdgeInsets.all(30), 
-                      decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle), 
-                      child: Icon(Icons.lock_outline_rounded, size: 60, color: Colors.grey.shade400)
-                    ),
+                        padding: const EdgeInsets.all(30),
+                        decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            shape: BoxShape.circle),
+                        child: Icon(Icons.lock_outline_rounded,
+                            size: 60, color: Colors.grey.shade400)),
                     const SizedBox(height: 24),
-                    const Text(
-                      "Dashboard Not Available", 
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark)
-                    ),
+                    const Text("Dashboard Not Available",
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark)),
                     const SizedBox(height: 12),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40.0), 
-                      child: Text(
-                        "To access dashboard features, statistics, and history, please sign in with your account.", 
-                        textAlign: TextAlign.center, 
-                        style: TextStyle(color: Colors.grey.shade600, height: 1.5)
-                      )
-                    ),
+                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                        child: Text(
+                            "To access dashboard features, statistics, and history, please sign in with your account.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.grey.shade600, height: 1.5))),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF37E12), // สีส้มปุ่ม Sign In
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.login_rounded, size: 20),
-                      label: const Text("Sign In to Continue", style: TextStyle(fontWeight: FontWeight.bold))
-                    )
+                        onPressed: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen())),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFFF37E12), // สีส้มปุ่ม Sign In
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.login_rounded, size: 20),
+                        label: const Text("Sign In to Continue",
+                            style: TextStyle(fontWeight: FontWeight.bold)))
                   ],
                 ),
               ),
@@ -269,79 +282,94 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       );
     }
 
-    return Consumer<HistoryProvider>(
-      builder: (context, provider, _) {
-        return RefreshIndicator(
-          onRefresh: () => provider.fetchAllData(),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 60, bottom: 100), 
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                _buildHeader(auth.user),
-                const SizedBox(height: 16),
-                _buildLastUsedCard(provider),
-                const SizedBox(height: 16),
-                _buildExpandableCardSection(provider),
-                const SizedBox(height: 16),
-                Row(
-                  children:[
-                    Expanded(child: _buildStatCard("Avg. Accuracy", "${provider.avgAccuracy.toStringAsFixed(1)}%")),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard("Today", "${provider.todayCount}")),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _buildCalendarSection(provider),
-                const SizedBox(height: 24),
-                const Text("Recent Analyses", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                const SizedBox(height: 16),
-                if (provider.recentItems.isEmpty)
-                  const Center(
+    return Consumer<HistoryProvider>(builder: (context, provider, _) {
+      return RefreshIndicator(
+        onRefresh: () => provider.fetchAllData(),
+        child: SingleChildScrollView(
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 60, bottom: 100),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(auth.user),
+              const SizedBox(height: 16),
+              _buildLastUsedCard(provider),
+              const SizedBox(height: 16),
+              _buildExpandableCardSection(provider),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                      child: _buildStatCard("Avg. Accuracy",
+                          "${provider.avgAccuracy.toStringAsFixed(1)}%")),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: _buildStatCard("Today", "${provider.todayCount}")),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildCalendarSection(provider),
+              const SizedBox(height: 24),
+              const Text("Recent Analyses",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark)),
+              const SizedBox(height: 16),
+              if (provider.recentItems.isEmpty)
+                const Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 30), 
-                      child: Text("No analyses yet.", style: TextStyle(color: Colors.grey))
-                    )
-                  )
-                else
-                  ...provider.recentItems.map((item) => _buildRecentItem(item)),
-              ],
-            ),
+                        padding: EdgeInsets.symmetric(vertical: 30),
+                        child: Text("No analyses yet.",
+                            style: TextStyle(color: Colors.grey))))
+              else
+                ...provider.recentItems.map((item) => _buildRecentItem(item)),
+            ],
           ),
-        );
-      }
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildHeader(dynamic user) {
-    final initial = user?.username.isNotEmpty == true ? user!.username[0].toUpperCase() : "U";
+    final initial = user?.username.isNotEmpty == true
+        ? user!.username[0].toUpperCase()
+        : "U";
     final name = user?.username ?? "User";
     final dept = user?.department ?? "Department";
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children:[
+      children: [
         Row(
-          children:[
+          children: [
             CircleAvatar(
               radius: 24,
               backgroundColor: Colors.white,
               child: Container(
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300)
-                ),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade300)),
                 alignment: Alignment.center,
-                child: Text(initial, style: const TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold)),
+                child: Text(initial,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
-                Text(dept, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              children: [
+                Text(name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.textDark)),
+                Text(dept,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
           ],
@@ -349,19 +377,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         TextButton.icon(
           onPressed: () {
             Provider.of<AuthProvider>(context, listen: false).logout();
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()));
           },
-          icon: const Icon(Icons.logout_rounded, color: AppColors.textDark, size: 18),
-          label: const Text("Logout", style: TextStyle(color: AppColors.textDark, fontSize: 14)),
+          icon: const Icon(Icons.logout_rounded,
+              color: AppColors.textDark, size: 18),
+          label: const Text("Logout",
+              style: TextStyle(color: AppColors.textDark, fontSize: 14)),
         )
       ],
     );
   }
 
   Widget _buildExpandableCardSection(HistoryProvider provider) {
-    final dept = Provider.of<AuthProvider>(context).user?.department ?? "Department";
+    final dept =
+        Provider.of<AuthProvider>(context).user?.department ?? "Department";
     final departmentCount = provider.departmentAnalysesCount;
-    
+
     return Column(
       children: [
         GestureDetector(
@@ -381,28 +413,42 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(16),
-              boxShadow:[
-                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5)),
+              boxShadow: [
+                BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5)),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
+              children: [
                 const Row(
-                  children:[
-                    Icon(Icons.trending_up_rounded, color: Colors.white70, size: 20),
+                  children: [
+                    Icon(Icons.trending_up_rounded,
+                        color: Colors.white70, size: 20),
                     SizedBox(width: 8),
-                    Text("Your Total Analyses", style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
+                    Text("Your Total Analyses",
+                        style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500)),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(provider.totalAnalyses.toString(), style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
+                    Text(provider.totalAnalyses.toString(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold)),
                     RotationTransition(
-                      turns: Tween(begin: 0.0, end: 0.5).animate(_animController ?? const AlwaysStoppedAnimation(0.0)),
-                      child: const Icon(Icons.expand_more_rounded, color: Colors.white70, size: 28),
+                      turns: Tween(begin: 0.0, end: 0.5).animate(
+                          _animController ?? const AlwaysStoppedAnimation(0.0)),
+                      child: const Icon(Icons.expand_more_rounded,
+                          color: Colors.white70, size: 28),
                     ),
                   ],
                 ),
@@ -410,7 +456,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             ),
           ),
         ),
-        
         AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
@@ -421,7 +466,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               animation: _animController ?? const AlwaysStoppedAnimation(0.0),
               builder: (context, child) {
                 final animValue = _animController?.value ?? 0.0;
-                
+
                 return Opacity(
                   opacity: animValue,
                   child: GestureDetector(
@@ -440,28 +485,32 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       margin: const EdgeInsets.only(top: 12),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.orange.shade200, width: 1.5),
-                        boxShadow:[
-                          BoxShadow(
-                            color: Colors.orange.withValues(alpha: 0.15 * animValue), 
-                            blurRadius: 10, 
-                            offset: const Offset(0, 4)
-                          ),
-                        ]
-                      ),
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: Colors.orange.shade200, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.orange
+                                    .withValues(alpha: 0.15 * animValue),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4)),
+                          ]),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children:[
+                        children: [
                           Row(
-                            children:[
-                              Icon(Icons.domain_outlined, color: Colors.orange.shade600, size: 18),
+                            children: [
+                              Icon(Icons.domain_outlined,
+                                  color: Colors.orange.shade600, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  "$dept Analyses", 
-                                  style: TextStyle(color: Colors.orange.shade600, fontSize: 13, fontWeight: FontWeight.w600),
+                                  "$dept Analyses",
+                                  style: TextStyle(
+                                      color: Colors.orange.shade600,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -469,13 +518,19 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            departmentCount.toString(), 
-                            style: TextStyle(color: Colors.orange.shade800, fontSize: 36, fontWeight: FontWeight.bold),
+                            departmentCount.toString(),
+                            style: TextStyle(
+                                color: Colors.orange.shade800,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             "Total for your department",
-                            style: TextStyle(color: Colors.orange.shade600, fontSize: 12, fontWeight: FontWeight.w400),
+                            style: TextStyle(
+                                color: Colors.orange.shade600,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400),
                           ),
                         ],
                       ),
@@ -494,49 +549,71 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow:[
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ]
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children:[
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.textDark)),
+          Text(value,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: AppColors.textDark)),
         ],
       ),
     );
   }
 
   Widget _buildLastUsedCard(HistoryProvider provider) {
-    final lastUsed = provider.items.isNotEmpty ? provider.items.last.timestamp : null;
-    final lastUsedText = lastUsed != null 
-      ? DateFormat('MMM d, hh:mm a').format(lastUsed)
-      : "Never used";
+    final lastUsed =
+        provider.items.isNotEmpty ? provider.items.last.timestamp : null;
+    final lastUsedText = lastUsed != null
+        ? DateFormat('MMM d, hh:mm a').format(lastUsed)
+        : "Never used";
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow:[
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ]
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
+          ]),
       child: Row(
         children: [
-          const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 20),
+          const Icon(Icons.access_time_rounded,
+              color: AppColors.primary, size: 20),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Last Used", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+              const Text("Last Used",
+                  style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500)),
               const SizedBox(height: 4),
-              Text(lastUsedText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+              Text(lastUsedText,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.textDark)),
             ],
           ),
         ],
@@ -548,14 +625,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow:[
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ]
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
+          ]),
       child: Column(
-        children:[
+        children: [
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
@@ -567,21 +646,32 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 _focusedDay = focusedDay;
               });
             },
-            calendarFormat: CalendarFormat.week, 
+            calendarFormat: CalendarFormat.week,
             headerStyle: const HeaderStyle(
               formatButtonVisible: false,
               titleCentered: true,
-              titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark),
-              leftChevronIcon: Icon(Icons.chevron_left_rounded, color: AppColors.textDark),
-              rightChevronIcon: Icon(Icons.chevron_right_rounded, color: AppColors.textDark),
+              titleTextStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.textDark),
+              leftChevronIcon:
+                  Icon(Icons.chevron_left_rounded, color: AppColors.textDark),
+              rightChevronIcon:
+                  Icon(Icons.chevron_right_rounded, color: AppColors.textDark),
             ),
             calendarStyle: const CalendarStyle(
-              todayDecoration: BoxDecoration(color: Color(0xFFFFF3E0), shape: BoxShape.circle), 
-              todayTextStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-              selectedDecoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), 
-              selectedTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              defaultTextStyle: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w500),
-              weekendTextStyle: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w500),
+              todayDecoration: BoxDecoration(
+                  color: Color(0xFFFFF3E0), shape: BoxShape.circle),
+              todayTextStyle: TextStyle(
+                  color: AppColors.primary, fontWeight: FontWeight.bold),
+              selectedDecoration: BoxDecoration(
+                  color: AppColors.primary, shape: BoxShape.circle),
+              selectedTextStyle:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              defaultTextStyle: TextStyle(
+                  color: AppColors.textDark, fontWeight: FontWeight.w500),
+              weekendTextStyle: TextStyle(
+                  color: AppColors.textDark, fontWeight: FontWeight.w500),
             ),
             daysOfWeekStyle: const DaysOfWeekStyle(
               weekdayStyle: TextStyle(color: Colors.grey, fontSize: 13),
@@ -589,33 +679,58 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             ),
           ),
           const Divider(height: 32, color: Color(0xFFEDF1F7)),
-          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children:[
-              Text(DateFormat('MMMM d, yyyy').format(_selectedDay), style: const TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500)),
+            children: [
+              Text(DateFormat('MMMM d, yyyy').format(_selectedDay),
+                  style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
               Row(
-                children:[
+                children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children:[
-                      const Text("Analyses", style: TextStyle(color: Colors.grey, fontSize: 11)),
+                    children: [
+                      const Text("Analyses",
+                          style: TextStyle(color: Colors.grey, fontSize: 11)),
                       Text(
-                        provider.items.where((e) => isSameDay(e.timestamp, _selectedDay)).length.toString(), 
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)
-                      ),
+                          provider.items
+                              .where(
+                                  (e) => isSameDay(e.timestamp, _selectedDay))
+                              .length
+                              .toString(),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textDark)),
                     ],
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children:[
-                      const Text("Avg. Accuracy", style: TextStyle(color: Colors.grey, fontSize: 11)),
+                    children: [
+                      const Text("Avg. Accuracy",
+                          style: TextStyle(color: Colors.grey, fontSize: 11)),
                       Builder(builder: (ctx) {
-                        final dayItems = provider.items.where((e) => isSameDay(e.timestamp, _selectedDay)).toList();
-                        if (dayItems.isEmpty) return const Text("-", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark));
-                        final avg = dayItems.fold(0.0, (sum, e) => sum + e.accuracy) / dayItems.length;
-                        return Text("${avg.toStringAsFixed(1)}%", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark));
+                        final dayItems = provider.items
+                            .where((e) => isSameDay(e.timestamp, _selectedDay))
+                            .toList();
+                        if (dayItems.isEmpty) {
+                          return const Text("-",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.textDark));
+                        }
+                        final avg =
+                            dayItems.fold(0.0, (sum, e) => sum + e.accuracy) /
+                                dayItems.length;
+                        return Text("${avg.toStringAsFixed(1)}%",
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.textDark));
                       }),
                     ],
                   ),
@@ -629,37 +744,61 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildRecentItem(HistoryItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow:[
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ]
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children:[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children:[
-              Text(item.itemName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark)),
-              const SizedBox(height: 6),
-              Text(DateFormat('MMM d, hh:mm a').format(item.timestamp), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => HistoryDetailScreen(item: item),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children:[
-              Text("${item.accuracy.toStringAsFixed(1)}%", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.primary)),
-              const SizedBox(height: 6),
-              Text(item.modelUsed, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          )
-        ],
+        );
+      },
+      borderRadius: BorderRadius.circular(
+          16), 
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.itemName,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: AppColors.textDark)),
+                const SizedBox(height: 6),
+                Text(DateFormat('MMM d, hh:mm a').format(item.timestamp),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text("${item.accuracy.toStringAsFixed(1)}%",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: AppColors.primary)),
+                const SizedBox(height: 6),
+                Text(item.modelUsed,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
